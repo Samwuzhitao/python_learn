@@ -15,6 +15,7 @@ import array
 import os
 import signal
 import time
+import string
 from time import sleep
 
 flag_stop = False
@@ -61,13 +62,55 @@ def uart_change_uart_cnt_dec():
 
 def uart_add_char_to_pbuf(char):
 	global printf_str
-	printf_str = printf_str + char
+	printf_str = printf_str + ' '+char
 
+def str_2_hex_to_int(str):
+	sStr1 = str[0:2]
+	num = string.atoi(sStr1, 16)
+	print num
+
+def str_1_hex_to_2_hex(str):
+	sStr1 = str
+	
+	sStr2 = sStr1.split(' 0')
+	delimiter = ' 00'
+	sStr2 = delimiter.join(sStr2)
+	return sStr2
+
+
+def uart_show_message(str):
+	sStr1 = str
+	
+	sStr2 = sStr1.split(' 0')
+	delimiter = ' 00'
+	sStr2 = delimiter.join(sStr2)
+	
+	print sStr2
+	
+	print "Message->header =",sStr2[1:3]
+	print "Message->Type   =",sStr2[4:6]
+	
+	sign_str = sStr2[7:18]
+	print "Message->SIGN   =",sign_str
+	
+	len_str = sStr2[19:21]
+	print "Message->LEN    =",len_str
+	len_int = string.atoi(len_str, 16)
+	print len_int
+	
+	data = sStr2[22:22+len_int*3]
+	print "Message->DATA    = ",data
+	
+	xor = sStr2[222+len_int*3+1:22+len_int*3+3]
+	print "Message->OXR    = ",xor
+	
+	
 def uart_clear_pbuf():
 	global printf_str
 	print printf_str
+	uart_show_message(printf_str)
 	printf_str = ""
-
+	
 def uart_change_test_cnt(data):
 	global test_cnt
 	test_cnt = test_cnt + data
@@ -78,11 +121,11 @@ def uart_decode_machine(x):
 	global status
 	global uart_cnt
 	
-	char = hex(ord(x))
-	
+	char = hex(ord(x))[2:]
+
 	# revice header
 	if status == 0:
-		if char == "0x5c":
+		if char == "5c":
 			uart_add_char_to_pbuf(char)
 			uart_change_status(1)
 		return
@@ -123,17 +166,19 @@ def uart_decode_machine(x):
 	
 	# revice data end
 	if status == 5:	
-		if char == "0xca":
+		if char == "ca":
 			uart_change_status(100)
 			uart_add_char_to_pbuf(char)
 			uart_clear_pbuf()
 			return
-	#	print status
-	# print char
 
 	
-	
 if __name__=='__main__':
+	status = 0
+	printf_str = ""
+	uart_cnt = 0
+	test_cnt = 0
+	
 	discovery_uart();
 #	selport = input('please select port:')
 	selport = 5 
@@ -144,11 +189,6 @@ if __name__=='__main__':
 	print "serial.isOpen() =",ser.isOpen()
 			
 	startTime = time.time()
-	
-	status = 0
-	printf_str = ""
-	uart_cnt = 0
-	test_cnt = 0
 	
 	print "Uart Message process :"
 	while True: 
