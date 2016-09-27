@@ -180,7 +180,7 @@ def uart_decode_machine(x):
 		#print "uart_revice_oxr =",char
 		#print "uart_xor_cal(x) =",uart_cal_oxr
 		uart_oxr_cmp = cmp(uart_cal_oxr,char)
-		print uart_oxr_cmp
+		#print uart_oxr_cmp
 		if uart_oxr_cmp == 0:
 			uart_add_char_to_pbuf(char)
 			uart_change_status(6)
@@ -208,8 +208,10 @@ def uart_get_cmd_message():
 	global 	uart_test_cmd_max
 	global uart_test_cmd_index
 	
-	f = open('clicker_test_cmd.txt','r')
-	uart_read_cmd = linecache.getline('clicker_test_cmd.txt',uart_test_cmd_index+2)
+	f = open(uart_test_file_name,'r')
+	uart_read_cmd = linecache.getline(uart_test_file_name,uart_test_cmd_index+1)
+	print "uart send cmd : "+uart_read_cmd
+	uart_read_cmd = linecache.getline(uart_test_file_name,uart_test_cmd_index+2)
 	#print "linecache.getline = "+uart_read_cmd
 	linecache.clearcache()
 	f.close()
@@ -232,18 +234,27 @@ if __name__=='__main__':
 	uart_test_cmd_max = 0
 	uart_test_cmd_index = 0
 	uart_test_cmd_num = 0
+	uart_test_file = ""
 	
+	# open uart port
 	discovery_uart();
-#	selport = input('please select port:')
-	selport = 5 
+	selport = input('please select port:')
+#	selport = 5 
 	print "the port you select is :",selport
 	ser = serial.Serial( selport, 115200, timeout = 120)
 #	ser = serial.Serial( selport, 115200, timeout = 120)
 	print "Open", ser.portstr
 	print "serial.isOpen() =",ser.isOpen()
 
+	# open read test file name
+	f = open('clicker_test_cmd_file_select.txt','r')
+	uart_test_file_name = linecache.getline('clicker_test_cmd_file_select.txt',1)
+	uart_test_file_name=uart_test_file_name.strip('\n')
+	print "uart test file name : "+uart_test_file_name
+	f.close()
+	
 	# get the cmd num of the file 'clicker_test_cmd.txt'
-	uart_test_cmd_max = len(open('clicker_test_cmd.txt','rU').readlines()) 
+	uart_test_cmd_max = len(open(uart_test_file_name,'rU').readlines()) 
 	print "clicker_test_cmd len = ",uart_test_cmd_max/2
 
 	startTime = time.time()
@@ -260,6 +271,7 @@ if __name__=='__main__':
 		ser.write(uart_cmd_data)
 		uart_test_cmd_num = uart_test_cmd_num + 1
 		# decode return message 
+		
 		while True:
 			read_char = ser.read(1)
 			uart_decode_machine(read_char)
