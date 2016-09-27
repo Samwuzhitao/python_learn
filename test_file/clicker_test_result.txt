@@ -1,0 +1,5 @@
+[TEST] read cmd file count           = 0x1
+[TEST] send cmd count                = 0xa
+[TEST] revice ok  instructions count = 0xa
+[TEST] revice err instructions count = 0x0
+[TEST] test time                     = 2.7460000515

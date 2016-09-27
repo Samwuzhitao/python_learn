@@ -209,6 +209,7 @@ def uart_get_cmd_message():
 	global 	uart_test_cmd_max
 	global uart_test_cmd_index
 	global uart_read_cmd_file_num
+	global uart_test_file_name
 	
 	f = open(uart_test_file_name,'r')
 	uart_read_cmd = linecache.getline(uart_test_file_name,uart_test_cmd_index+1)
@@ -233,9 +234,11 @@ def store_test_result():
 	global uart_revice_cmd_err_num
 	global uart_read_cmd_file_num
 	global startTime
-
+	global path
+	
 	endTime = time.time()
-	f = open('clicker_test_result.txt','w')
+	
+	f = open(path + '\\test_file\clicker_test_result.txt','w')
 	f.write('[TEST] read cmd file count           = '+hex(uart_read_cmd_file_num)+'\r\n')
 	f.write('[TEST] send cmd count                = '+hex(uart_send_cmd_num)+'\r\n')
 	f.write('[TEST] revice ok  instructions count = '+hex(uart_revice_cmd_ok_num)+'\r\n')
@@ -294,11 +297,15 @@ if __name__=='__main__':
 	else:
 		print "Open the cmd send function "
 
+	path = os.path.abspath("../")
+	print path
+	
 	if uart_send_cmd_switch == 1:
 		# open read test file name
-		f = open('clicker_test_cmd_file_select.txt','r')
-		uart_test_file_name = linecache.getline('clicker_test_cmd_file_select.txt',1)
+		f = open(path + '\\test_file\clicker_test_cmd_file_select.txt','r')
+		uart_test_file_name = linecache.getline(path + '\\test_file\clicker_test_cmd_file_select.txt',1)
 		uart_test_file_name=uart_test_file_name.strip('\n')
+		uart_test_file_name = path + '\\test_file\\' + uart_test_file_name
 		print "uart test file name : "+uart_test_file_name
 		f.close()
 	
