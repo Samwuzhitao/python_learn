@@ -93,7 +93,7 @@ def uart_show_message(str):
 	print "Message->DATA   =",data
 
 	Message_xor = str[22+len_int*3:22+len_int*3+2]
-	print "Message->OXR    =",Message_xor
+	print "Message->XOR    =",Message_xor
 
 	Message_end = str[22+(len_int+1)*3:22+(len_int+1)*3+2]
 	print "Message->END    =",Message_end
@@ -211,11 +211,11 @@ if __name__=='__main__':
 	uart_xor = 0
 	
 	discovery_uart();
-#	selport = input('please select port:')
-	selport = 5 
+	selport = input('please select port:')
+#	selport = 5 
 	print "the port you select is :",selport
-#	ser = serial.Serial( selport, 115200)
-	ser = serial.Serial( selport, 115200, timeout = 1)
+	ser = serial.Serial( selport, 115200, timeout = 120)
+#	ser = serial.Serial( selport, 115200, timeout = 120)
 	print "Open", ser.portstr
 	print "serial.isOpen() =",ser.isOpen()
 			
@@ -224,8 +224,8 @@ if __name__=='__main__':
 	print "Uart Message process :"
 	while True: 
 		# send cmd meaasge
-		ser.write(cmd_DeviceInfo)
-		ser.write(cmd_Systick)
+		#ser.write(cmd_DeviceInfo)
+		#ser.write(cmd_Systick)
 		
 		# decode return message 
 		while True:
@@ -237,10 +237,15 @@ if __name__=='__main__':
 				
 		# Statistical time 
 		endTime = time.time()
-		print "use time: "+str(endTime-startTime)
+		f = open('clicker_test_file.txt','w')
+		f.write('test_cnt_ok  = '+hex(test_cnt_ok)+'\r\n')
+		f.write('test_cnt_err = '+hex(test_cnt_err)+'\r\n')
+		f.write('test_time    = '+str(endTime-startTime)+'\r\n')
+		f.close()
+		#print "use time: "+str(endTime-startTime)
 		
 		# delay 500 ms
-		sleep(0.5)
+		#sleep(0.05)
 
 #	if n == 5:
 #	
