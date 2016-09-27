@@ -17,6 +17,7 @@ import signal
 import time
 import string
 import linecache 
+import threading
 from time import sleep
 
 flag_stop = False
@@ -99,15 +100,15 @@ def uart_show_message(str):
 	Message_end = str[22+(len_int+1)*3:22+(len_int+1)*3+2]
 	print "Message->END    =",Message_end
 	
-def uart_change_test_cnt_ok(data):
-	global test_cnt_ok
-	test_cnt_ok = test_cnt_ok + data
-	print "uart_change_test_cnt_ok:",test_cnt_ok
+def uart_change_uart_revice_cmd_ok_num(data):
+	global uart_revice_cmd_ok_num
+	uart_revice_cmd_ok_num = uart_revice_cmd_ok_num + data
+	print "uart_change_uart_revice_cmd_ok_num:",uart_revice_cmd_ok_num
 
-def uart_change_test_cnt_err(data):
-	global test_cnt_err
-	test_cnt_err = test_cnt_err + data
-	print "uart_change_test_cnt_err:",test_cnt_err
+def uart_change_uart_revice_cmd_err_num(data):
+	global uart_revice_cmd_err_num
+	uart_revice_cmd_err_num = uart_revice_cmd_err_num + data
+	print "uart_change_uart_revice_cmd_err_num:",uart_revice_cmd_err_num
 	
 def uart_clear_pbuf(x):
 	global printf_str
@@ -115,10 +116,10 @@ def uart_clear_pbuf(x):
 	if x == 0:
 		uart_show_message(printf_str)
 		printf_str = ""
-		uart_change_test_cnt_ok(1)
+		uart_change_uart_revice_cmd_ok_num(1)
 	else:
 		printf_str = ""
-		uart_change_test_cnt_err(1)
+		uart_change_uart_revice_cmd_err_num(1)
 	
 def uart_decode_machine(x):
 	global status
@@ -207,6 +208,7 @@ def uart_decode_machine(x):
 def uart_get_cmd_message():
 	global 	uart_test_cmd_max
 	global uart_test_cmd_index
+	global uart_read_cmd_file_num
 	
 	f = open(uart_test_file_name,'r')
 	uart_read_cmd = linecache.getline(uart_test_file_name,uart_test_cmd_index+1)
@@ -219,86 +221,107 @@ def uart_get_cmd_message():
 	uart_test_cmd_index = uart_test_cmd_index + 2 
 	if uart_test_cmd_index == uart_test_cmd_max:
 		uart_test_cmd_index = 0
+		uart_read_cmd_file_num = uart_read_cmd_file_num + 1
 
 	uart_read_cmd=uart_read_cmd.strip('\n')
 
 	return uart_read_cmd
 
-if __name__=='__main__':
-	status = 0
-	printf_str = ""
-	uart_cnt = 0
-	test_cnt_ok = 0
-	test_cnt_err = 0
-	uart_xor = 0
-	uart_test_cmd_max = 0
-	uart_test_cmd_index = 0
-	uart_test_cmd_num = 0
-	uart_test_file = ""
-	
-	# open uart port
-	discovery_uart();
-	selport = input('please select port:')
-#	selport = 5 
-	print "the port you select is :",selport
-	ser = serial.Serial( selport, 115200, timeout = 120)
-#	ser = serial.Serial( selport, 115200, timeout = 120)
-	print "Open", ser.portstr
-	print "serial.isOpen() =",ser.isOpen()
+def store_test_result():
+	global uart_send_cmd_num
+	global uart_revice_cmd_ok_num
+	global uart_revice_cmd_err_num
+	global uart_read_cmd_file_num
+	global startTime
 
-	# open read test file name
-	f = open('clicker_test_cmd_file_select.txt','r')
-	uart_test_file_name = linecache.getline('clicker_test_cmd_file_select.txt',1)
-	uart_test_file_name=uart_test_file_name.strip('\n')
-	print "uart test file name : "+uart_test_file_name
+	endTime = time.time()
+	f = open('clicker_test_result.txt','w')
+	f.write('[TEST] read cmd file count           = '+hex(uart_read_cmd_file_num)+'\r\n')
+	f.write('[TEST] send cmd count                = '+hex(uart_send_cmd_num)+'\r\n')
+	f.write('[TEST] revice ok  instructions count = '+hex(uart_revice_cmd_ok_num)+'\r\n')
+	f.write('[TEST] revice err instructions count = '+hex(uart_revice_cmd_err_num)+'\r\n')
+	f.write('[TEST] test time                     = '+str(endTime-startTime)+'\r\n')
 	f.close()
-	
-	# get the cmd num of the file 'clicker_test_cmd.txt'
-	uart_test_cmd_max = len(open(uart_test_file_name,'rU').readlines()) 
-	print "clicker_test_cmd len = ",uart_test_cmd_max/2
 
-	startTime = time.time()
+def uart_compress_cmd():
+	global ser
 
-	print "Uart Message process :"
-	while True: 
-		# send cmd meaasge
-		#ser.write(cmd_DeviceInfo)
-		#ser.write(cmd_Systick)
-		
+	while True:
+		read_char = ser.read(1)
+		uart_decode_machine(read_char)
+		if status == 100:
+			uart_change_status(0)
+			store_test_result()
+
+def uart_send_cmd():
+	global ser
+	global uart_send_cmd_num
+
+	while True:
 		uart_cmd_data = uart_get_cmd_message()
 		#print uart_cmd_data
 		uart_cmd_data = uart_cmd_data.decode("hex")
 		ser.write(uart_cmd_data)
-		uart_test_cmd_num = uart_test_cmd_num + 1
-		# decode return message 
-		
-		while True:
-			read_char = ser.read(1)
-			uart_decode_machine(read_char)
-			if status == 100:
-				uart_change_status(0)
-				break
-				
-		# Statistical time 
-		endTime = time.time()
-		f = open('clicker_test_result.txt','w')
-		f.write('uart test count     = '+hex(uart_test_cmd_num)+'\r\n')
-		f.write('uart test ok count  = '+hex(test_cnt_ok)+'\r\n')
-		f.write('uart test err count = '+hex(test_cnt_err)+'\r\n')
-		f.write('uart test time      = '+str(endTime-startTime)+'\r\n')
-		f.close()
-		#print "use time: "+str(endTime-startTime)
-		
-		# delay 500 ms
-		#sleep(0.05)
+		uart_send_cmd_num = uart_send_cmd_num + 1
+		sleep(0.3)
 
-#	if n == 5:
-#	
-#		while True:    
-#			data =recv(ser)    
-#			ser.write(data)
- 
-	#print "please selsect serial port:"
+if __name__=='__main__':
+	status = 0
+	printf_str = ""
+	uart_cnt = 0
+	uart_revice_cmd_ok_num = 0
+	uart_revice_cmd_err_num = 0
+	uart_xor = 0
+	uart_test_cmd_max = 0
+	uart_test_cmd_index = 0
+	uart_send_cmd_num = 0
+	uart_read_cmd_file_num = 0
+
+	# open uart port
+	discovery_uart();
+	selport = input('Please select port:')
+	#selport = 5
+	print "The port you select is :",selport
+	ser = serial.Serial( selport, 115200, timeout = 120)
+	#ser = serial.Serial( selport, 115200, timeout = 120)
+	print "Open", ser.portstr
+	#print "serial.isOpen() =",ser.isOpen()
+
+	uart_send_cmd_switch = input('Please select open or close cmd send function : ( 0 : [OFF] , 1 : [ON] ) ')
+
+	if uart_send_cmd_switch == 0:
+		print "Close the cmd send function "
+	else:
+		print "Open the cmd send function "
+
+	if uart_send_cmd_switch == 1:
+		# open read test file name
+		f = open('clicker_test_cmd_file_select.txt','r')
+		uart_test_file_name = linecache.getline('clicker_test_cmd_file_select.txt',1)
+		uart_test_file_name=uart_test_file_name.strip('\n')
+		print "uart test file name : "+uart_test_file_name
+		f.close()
 	
+		# get the cmd num of the file 'clicker_test_cmd.txt'
+		uart_test_cmd_max = len(open(uart_test_file_name,'rU').readlines()) 
+		print "clicker_test_cmd len = ",uart_test_cmd_max/2
+
+	startTime = time.time()
+
+	print "Uart Message process :"
 	
+	#while True:
+	#	uart_send_cmd()
+	#	uart_compress_cmd()
+
+	#reader = multiprocessing.Process(target=uart_compress_cmd)
 	
+	reader  = threading.Thread(target=uart_compress_cmd)
+	reader.start()
+	print 'SubProcess reader is going to start...'
+
+	if uart_send_cmd_switch == 1:
+		#writer  = multiprocessing.Process(target=uart_send_cmd)
+		writer  = threading.Thread(target=uart_send_cmd)
+		writer .start()
+		print 'SubProcess writer is going to start...'
