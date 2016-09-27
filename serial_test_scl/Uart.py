@@ -16,6 +16,7 @@ import os
 import signal
 import time
 import string
+import linecache 
 from time import sleep
 
 flag_stop = False
@@ -202,6 +203,25 @@ def uart_decode_machine(x):
 			return
 
 
+			
+def uart_get_cmd_message():
+	global 	uart_test_cmd_max
+	global uart_test_cmd_index
+	
+	f = open('clicker_test_cmd.txt','r')
+	uart_read_cmd = linecache.getline('clicker_test_cmd.txt',uart_test_cmd_index+2)
+	#print "linecache.getline = "+uart_read_cmd
+	linecache.clearcache()
+	f.close()
+	
+	uart_test_cmd_index = uart_test_cmd_index + 2 
+	if uart_test_cmd_index == uart_test_cmd_max:
+		uart_test_cmd_index = 0
+
+	uart_read_cmd=uart_read_cmd.strip('\n')
+
+	return uart_read_cmd
+
 if __name__=='__main__':
 	status = 0
 	printf_str = ""
@@ -209,24 +229,36 @@ if __name__=='__main__':
 	test_cnt_ok = 0
 	test_cnt_err = 0
 	uart_xor = 0
+	uart_test_cmd_max = 0
+	uart_test_cmd_index = 0
+	uart_test_cmd_num = 0
 	
 	discovery_uart();
-	selport = input('please select port:')
-#	selport = 5 
+#	selport = input('please select port:')
+	selport = 5 
 	print "the port you select is :",selport
 	ser = serial.Serial( selport, 115200, timeout = 120)
 #	ser = serial.Serial( selport, 115200, timeout = 120)
 	print "Open", ser.portstr
 	print "serial.isOpen() =",ser.isOpen()
-			
+
+	# get the cmd num of the file 'clicker_test_cmd.txt'
+	uart_test_cmd_max = len(open('clicker_test_cmd.txt','rU').readlines()) 
+	print "clicker_test_cmd len = ",uart_test_cmd_max/2
+
 	startTime = time.time()
-	
+
 	print "Uart Message process :"
 	while True: 
 		# send cmd meaasge
 		#ser.write(cmd_DeviceInfo)
 		#ser.write(cmd_Systick)
 		
+		uart_cmd_data = uart_get_cmd_message()
+		#print uart_cmd_data
+		uart_cmd_data = uart_cmd_data.decode("hex")
+		ser.write(uart_cmd_data)
+		uart_test_cmd_num = uart_test_cmd_num + 1
 		# decode return message 
 		while True:
 			read_char = ser.read(1)
@@ -237,10 +269,11 @@ if __name__=='__main__':
 				
 		# Statistical time 
 		endTime = time.time()
-		f = open('clicker_test_file.txt','w')
-		f.write('test_cnt_ok  = '+hex(test_cnt_ok)+'\r\n')
-		f.write('test_cnt_err = '+hex(test_cnt_err)+'\r\n')
-		f.write('test_time    = '+str(endTime-startTime)+'\r\n')
+		f = open('clicker_test_result.txt','w')
+		f.write('uart test count     = '+hex(uart_test_cmd_num)+'\r\n')
+		f.write('uart test ok count  = '+hex(test_cnt_ok)+'\r\n')
+		f.write('uart test err count = '+hex(test_cnt_err)+'\r\n')
+		f.write('uart test time      = '+str(endTime-startTime)+'\r\n')
 		f.close()
 		#print "use time: "+str(endTime-startTime)
 		
