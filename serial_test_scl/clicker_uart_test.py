@@ -31,25 +31,17 @@ uart_test_cmd_index = 0
 uart_send_cmd_num = 0
 uart_read_cmd_file_num = 0
 
-def uart_get_cmd_message(file_name):
+def uart_update_cmd_index():
 	global 	uart_test_cmd_max
 	global uart_test_cmd_index
 	global uart_read_cmd_file_num
-	
-	f = open(file_name,'rU')
-	uart_read_cmd =linecache.getline(file_name,uart_test_cmd_index+1)
-	print "uart send cmd : "+uart_read_cmd
-	uart_read_cmd = linecache.getline(file_name,uart_test_cmd_index+2)
-	#print "linecache.getline = "+uart_read_cmd
-	
-	f.close()
+
 	uart_test_cmd_index = uart_test_cmd_index + 2 
+	
 	if uart_test_cmd_index == uart_test_cmd_max:
 		uart_test_cmd_index = 0
 		uart_read_cmd_file_num = uart_read_cmd_file_num + 1
-	uart_read_cmd=uart_read_cmd.strip('\n')
 
-	return uart_read_cmd
 
 def store_test_result():
 	global uart_send_cmd_num
@@ -80,12 +72,19 @@ def uart_compress_cmd():
 def uart_send_cmd():
 	global ser
 	global uart_send_cmd_num
-	global uart_test_file_name
+	global uart_cmds
+	global uart_test_cmd_index
 	
 	while True:
-		uart_cmd_data = uart_get_cmd_message(uart_test_file_name)
+		#uart_cmd_data = uart_get_cmd_message()
 		#print uart_cmd_data
+		print "uart_send_cmd :"+uart_cmds[uart_test_cmd_index]
+		uart_cmd_data = uart_cmds[uart_test_cmd_index+1]
+		uart_cmd_data = uart_cmd_data.strip('\n')
 		uart_cmd_data = uart_cmd_data.decode("hex")
+		
+		uart_update_cmd_index()
+		
 		ser.write(uart_cmd_data)
 		uart_send_cmd_num = uart_send_cmd_num + 1
 		sleep(0.3)
@@ -93,23 +92,28 @@ def uart_send_cmd():
 if __name__=='__main__':
 	# open uart port
 	uart_scan();
-	selport = input('Please select port: ')
+	path = os.path.abspath("../")
+	print 'Please Ensure you have config the serial port in:'
+	print path + '\\configuration\\' + 'uart_config.txt'
+	selport = raw_input("Press any key continue ...")
 	#selport = 5
-	print "The port you select is :",selport
+	#print "The port you select is :",selport
 	
 	# get uart configuration
-	path = os.path.abspath("../")
+	
 	#print path
 	config = ConfigParser.ConfigParser()
 	config.readfp(open(path + '\\configuration\\' + 'uart_config.txt', "rb"))
+	selport  = config.get('setting', 'Port')
 	baudrate = config.get('setting', 'baudrate')
 	timeout  = config.get('setting', 'timeout')
 	
 	# open serial port
-	ser = serial.Serial( selport, string.atoi(baudrate, 10), timeout = string.atoi(timeout, 10))
-	print "Open Port : ",ser.portstr
-	print "Baudrate  :  "+baudrate
-	print "TimeOut   :  "+timeout
+	ser = serial.Serial( string.atoi(selport, 10), string.atoi(baudrate, 10), timeout = string.atoi(timeout, 10))
+	print "config Port :  "+selport
+	print "Open Port   : ",ser.portstr
+	print "Baudrate    :  "+baudrate
+	print "TimeOut     :  "+timeout
 
 	uart_send_cmd_switch = input('Open or Close cmd send function : ( 0 : [OFF] , 1 : [ON] ) ')
 
@@ -121,7 +125,11 @@ if __name__=='__main__':
 	
 		# get the cmd num of the file 'clicker_test_cmd.txt'
 		uart_test_cmd_max = len(open(uart_test_file_name,'rU').readlines()) 
+		f = open(uart_test_file_name,'rU')
+		uart_cmds =f.readlines()
+		f.close()
 		print "clicker_test_cmd len = ",uart_test_cmd_max/2
+		
 
 	startTime = time.time()
 

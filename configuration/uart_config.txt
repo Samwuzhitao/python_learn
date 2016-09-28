@@ -1,5 +1,6 @@
 [setting]
 
+Port: 5
 baudrate: 115200
 timeout: 120
 delayMs: 300
