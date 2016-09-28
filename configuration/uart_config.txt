@@ -1,0 +1,13 @@
+[setting]
+
+baudrate: 115200
+timeout: 120
+delayMs: 300
+
+[cmd_file_select]
+
+cmd_file_name: clicker_whitelist_test_cmd.txt
+
+[message]
+
+greeting: wecome to the area calculation program!

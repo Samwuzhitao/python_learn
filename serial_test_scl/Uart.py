@@ -18,15 +18,8 @@ import time
 import string
 import linecache 
 import threading
+import ConfigParser
 from time import sleep
-
-flag_stop = False
-
-cmd_DeviceInfo = "5C2C00000000002CCA"
-cmd_DeviceInfo = cmd_DeviceInfo.decode("hex")
-
-cmd_Systick = "5C2E00000000002ECA"
-cmd_Systick = cmd_Systick.decode("hex")
 
 def scan():
     """scan for available ports. return a list of tuples (num, name)"""
@@ -282,32 +275,31 @@ if __name__=='__main__':
 
 	# open uart port
 	discovery_uart();
-	selport = input('Please select port:')
+	selport = input('Please select port: ')
 	#selport = 5
 	print "The port you select is :",selport
-	ser = serial.Serial( selport, 115200, timeout = 120)
-	#ser = serial.Serial( selport, 115200, timeout = 120)
-	print "Open", ser.portstr
-	#print "serial.isOpen() =",ser.isOpen()
+	
+	# get uart configuration
+	path = os.path.abspath("../")
+	#print path
+	config = ConfigParser.ConfigParser()
+	config.readfp(open(path + '\\config\\' + 'uart_config.txt', "rb"))
+	baudrate = config.get('setting', 'baudrate')
+	timeout = config.get('setting', 'timeout')
+	
+	# open serial port
+	ser = serial.Serial( selport, string.atoi(baudrate, 10), timeout = string.atoi(timeout, 10))
+	print "Open Port : ",ser.portstr
+	print "Baudrate  :  "+baudrate
+	print "TimeOut   :  "+timeout
 
 	uart_send_cmd_switch = input('Please select open or close cmd send function : ( 0 : [OFF] , 1 : [ON] ) ')
 
-	if uart_send_cmd_switch == 0:
-		print "Close the cmd send function "
-	else:
-		print "Open the cmd send function "
-
-	path = os.path.abspath("../")
-	print path
-	
 	if uart_send_cmd_switch == 1:
 		# open read test file name
-		f = open(path + '\\test_file\clicker_test_cmd_file_select.txt','r')
-		uart_test_file_name = linecache.getline(path + '\\test_file\clicker_test_cmd_file_select.txt',1)
-		uart_test_file_name=uart_test_file_name.strip('\n')
+		uart_test_file_name = config.get('cmd_file_select', 'cmd_file_name')
 		uart_test_file_name = path + '\\test_file\\' + uart_test_file_name
 		print "uart test file name : "+uart_test_file_name
-		f.close()
 	
 		# get the cmd num of the file 'clicker_test_cmd.txt'
 		uart_test_cmd_max = len(open(uart_test_file_name,'rU').readlines()) 

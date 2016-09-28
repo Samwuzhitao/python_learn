@@ -1,1 +1,0 @@
-clicker_test_cmd.txt
