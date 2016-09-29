@@ -4,6 +4,7 @@ Port: 5
 baudrate: 115200
 timeout: 120
 send_delayms: 2000
+file_store_switch:1
 
 [cmd_file_setting]
 

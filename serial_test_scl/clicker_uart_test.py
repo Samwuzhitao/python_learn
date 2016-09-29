@@ -14,6 +14,7 @@ import serial
 import array
 import os
 import time
+import datetime
 import string
 import linecache 
 import threading
@@ -53,14 +54,11 @@ def store_test_result():
 	global startTime
 	global path
 	
-	endTime = time.time()
-	
 	f = open(path + '\\test_file\clicker_test_result.txt','w')
 	f.write('[TEST] read cmd file count    = '+hex(uart_read_cmd_file_num)+'\r\n')
 	f.write('[TEST] send cmd count         = '+hex(uart_send_cmd_num)+'\r\n')
 	f.write('[TEST] ok  instructions count = '+hex(uart_check.uart_revice_cmd_ok_num)+'\r\n')
 	f.write('[TEST] err instructions count = '+hex(uart_check.uart_revice_cmd_err_num)+'\r\n')
-	f.write('[TEST] test time              = '+str(endTime-startTime)+'\r\n')
 	f.close()
 
 def uart_compress_cmd():
@@ -78,15 +76,18 @@ def uart_send_cmd():
 	global uart_send_cmd_num
 	global uart_cmds
 	global uart_test_cmd_index
+	global uart_file_store_switch
 	
 	while True:
 		#uart_cmd_data = uart_get_cmd_message()
 		#print uart_cmd_data
-		path = os.path.abspath("../")
-		f = open(path + '\\test_file\clicker_test_temp_result.txt','a')
-		print "uart_send_cmd :"+uart_cmds[uart_test_cmd_index]
-		print >> f, "uart_send_cmd :"+uart_cmds[uart_test_cmd_index]
-		f.close()
+		if string.atoi(uart_file_store_switch, 10) == 1:
+			path = os.path.abspath("../")
+			f = open(path + '\\test_file\clicker_test_temp_result.txt','a')
+			print "uart_send_cmd :"+uart_cmds[uart_test_cmd_index]
+			print >> f, "uart_send_cmd :"+uart_cmds[uart_test_cmd_index]
+			f.close()
+
 		uart_cmd_data = uart_cmds[uart_test_cmd_index+1]
 		uart_cmd_data = uart_cmd_data.strip('\n')
 		uart_cmd_data = uart_cmd_data.decode("hex")
@@ -115,16 +116,22 @@ if __name__=='__main__':
 	baudrate = config.get('setting', 'baudrate')
 	timeout  = config.get('setting', 'timeout')
 	send_delayms  = config.get('setting', 'send_delayms')
+	uart_file_store_switch = config.get('setting', 'file_store_switch')
 	
 	# open serial port
 	ser = serial.Serial( string.atoi(selport, 10), string.atoi(baudrate, 10), timeout = string.atoi(timeout, 10))
-	print "config Port :  "+selport
+	print "Config Port :  "+selport
 	print "Open Port   : ",ser.portstr
 	print "Baudrate    :  "+baudrate
 	print "TimeOut     :  "+timeout
 	print "Send delayms:  "+send_delayms
+	print "File Store Switch:  "+uart_file_store_switch
+
+	i = datetime.datetime.now()
+	print "Test Start Time : %s" % i.isoformat()
 
 	uart_send_cmd_switch = input('Open or Close cmd send function : ( 0 : [OFF] , 1 : [ON] ) ')
+
 
 	if uart_send_cmd_switch == 1:
 		# open read test file name
@@ -142,8 +149,16 @@ if __name__=='__main__':
 		f.close()
 		print "clicker_test_cmd len = ",uart_test_cmd_max/2
 		
-
-	startTime = time.time()
+	if string.atoi(uart_file_store_switch, 10) == 1:
+		f = open(path + '\\test_file\clicker_test_temp_result.txt','w')
+		print >> f, "Config Port :  "+selport
+		print >> f, "Open Port   : ",ser.portstr
+		print >> f, "Baudrate    :  "+baudrate
+		print >> f, "TimeOut     :  "+timeout
+		print >> f, "Send delayms:  "+send_delayms
+		print >> f, "Test Start Time : %s" % i.isoformat()
+		print >> f, "File Store Switch:  "+uart_file_store_switch
+		f.close()
 
 	#while True:
 	#   if uart_send_cmd_switch == 1:

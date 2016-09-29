@@ -1,0 +1,243 @@
+Config Port :  5
+Open Port   :  COM6
+Baudrate    :  115200
+TimeOut     :  120
+Send delayms:  2000
+Test Start Time : 2016-09-29T16:28:10.063000
+uart_send_cmd :【1】.下发数据指令
+
+Message->HEADER = 5c
+Message->TYPE   = 10
+Message->SIGN   = 01 0c 14 55
+Message->LEN    = 03
+Message->DATA   = 00 00 01 
+Message->XOR    = 5e
+Message->END    = ca
+uart_send_cmd :【2】.停止下发数据
+
+Message->HEADER = 5c
+Message->TYPE   = 12
+Message->SIGN   = 00 00 00 00
+Message->LEN    = 03
+Message->DATA   = 00 00 01 
+Message->XOR    = 10
+Message->END    = ca
+uart_send_cmd :【3】.添加白名单
+
+Message->HEADER = 5c
+Message->TYPE   = 20
+Message->SIGN   = 00 00 00 00
+Message->LEN    = 0a
+Message->DATA   = 09 00 fe ff ff ff ff ff ff 0a 
+Message->XOR    = d7
+Message->END    = ca
+uart_send_cmd :【4】.删除白名单
+
+Message->HEADER = 5c
+Message->TYPE   = 21
+Message->SIGN   = 00 00 00 00
+Message->LEN    = 0a
+Message->DATA   = 09 00 fe ff ff ff ff ff ff 01 
+Message->XOR    = dd
+Message->END    = ca
+uart_send_cmd :【5】.初始化白名单
+
+Message->HEADER = 5c
+Message->TYPE   = 22
+Message->SIGN   = 00 00 00 00
+Message->LEN    = 01
+Message->DATA   = 00 
+Message->XOR    = 23
+Message->END    = ca
+uart_send_cmd :【6】.开启白名单
+
+Message->HEADER = 5c
+Message->TYPE   = 23
+Message->SIGN   = 00 00 00 00
+Message->LEN    = 01
+Message->DATA   = 00 
+Message->XOR    = 22
+Message->END    = ca
+uart_send_cmd :【7】.关闭白名单
+
+Message->HEADER = 5c
+Message->TYPE   = 24
+Message->SIGN   = 00 00 00 00
+Message->LEN    = 01
+Message->DATA   = 00 
+Message->XOR    = 25
+Message->END    = ca
+uart_send_cmd :【8】.开启考勤
+
+Message->HEADER = 5c
+Message->TYPE   = 25
+Message->SIGN   = 00 00 00 00
+Message->LEN    = 01
+Message->DATA   = 00 
+Message->XOR    = 24
+Message->END    = ca
+uart_send_cmd :【9】.停止考勤
+
+Message->HEADER = 5c
+Message->TYPE   = 27
+Message->SIGN   = 00 00 00 00
+Message->LEN    = 01
+Message->DATA   = 00 
+Message->XOR    = 26
+Message->END    = ca
+uart_send_cmd :【10】.开始配对
+
+Message->HEADER = 5c
+Message->TYPE   = 28
+Message->SIGN   = 00 00 00 00
+Message->LEN    = 01
+Message->DATA   = 00 
+Message->XOR    = 29
+Message->END    = ca
+uart_send_cmd :【11】.停止配对
+
+Message->HEADER = 5c
+Message->TYPE   = 2a
+Message->SIGN   = 00 00 00 00
+Message->LEN    = 01
+Message->DATA   = 00 
+Message->XOR    = 2b
+Message->END    = ca
+uart_send_cmd :【12】.查看白名单
+
+Message->HEADER = 5c
+Message->TYPE   = 2b
+Message->SIGN   = 00 00 00 00
+Message->LEN    = 01
+Message->DATA   = 00 
+Message->XOR    = 2a
+Message->END    = ca
+uart_send_cmd :【13】.查看设备信息
+
+Message->HEADER = 5c
+Message->TYPE   = 2c
+Message->SIGN   = 00 00 00 00
+Message->LEN    = 1e
+Message->DATA   = e0 db b4 d9 02 00 04 5a 4c 2d 52 50 35 35 31 2d 4d 41 49 4e 2d 44 d1 b6 c1 aa b9 c9 b7 dd 
+Message->XOR    = 33
+Message->END    = ca
+uart_send_cmd :【14】.心跳指令
+
+Message->HEADER = 5c
+Message->TYPE   = 2e
+Message->SIGN   = 00 00 00 00
+Message->LEN    = 04
+Message->DATA   = e0 db b4 d9 
+Message->XOR    = 7c
+Message->END    = ca
+uart_send_cmd :【15】.帧长度非法指令
+
+Message->HEADER = 5c
+Message->TYPE   = 20
+Message->SIGN   = ff ff ff ff
+Message->LEN    = 02
+Message->DATA   = 01 fe 
+Message->XOR    = dd
+Message->END    = ca
+uart_send_cmd :【16】.未识别指令
+
+Message->HEADER = 5c
+Message->TYPE   = ff
+Message->SIGN   = ff ff ff ff
+Message->LEN    = 02
+Message->DATA   = 01 ff 
+Message->XOR    = 03
+Message->END    = ca
+uart_send_cmd :【17】.白名单极限测试1:添加59个白名单
+
+Message->HEADER = 5c
+Message->TYPE   = 20
+Message->SIGN   = ff ff ff ff
+Message->LEN    = 0a
+Message->DATA   = 3b 00 00 00 00 00 00 00 f8 3b 
+Message->XOR    = d2
+Message->END    = ca
+uart_send_cmd :【18】.查看白名单
+
+Message->HEADER = 5c
+Message->TYPE   = 2b
+Message->SIGN   = 00 00 00 00
+Message->LEN    = ed
+Message->DATA   = 3b 07 dd 00 01 07 dd 00 02 07 dd 00 03 07 dd 00 04 07 dd 00 05 07 dd 00 06 07 dd 00 07 07 dd 00 08 07 dd 00 09 07 dd 00 0a 07 dd 01 01 07 dd 01 02 07 dd 01 03 07 dd 01 04 07 dd 01 05 07 dd 01 06 07 dd 01 07 07 dd 01 08 07 dd 01 09 07 dd 01 0a 07 dd 02 01 07 dd 02 02 07 dd 02 03 07 dd 02 04 07 dd 02 05 07 dd 02 06 07 dd 02 07 07 dd 02 08 07 dd 02 09 07 dd 02 0a 07 dd 03 01 07 dd 03 02 07 dd 03 03 07 dd 03 04 07 dd 03 05 07 dd 03 06 07 dd 03 07 07 dd 03 08 07 dd 03 09 07 dd 03 0a 07 dd 04 01 07 dd 04 02 07 dd 04 03 07 dd 04 04 07 dd 04 05 07 dd 04 06 07 dd 04 07 07 dd 04 08 07 dd 04 09 07 dd 04 0a 07 dd 05 01 07 dd 05 02 07 dd 05 03 07 dd 05 04 07 dd 05 05 07 dd 05 06 07 dd 05 07 07 dd 05 08 07 dd 05 09 
+Message->XOR    = 28
+Message->END    = ca
+uart_send_cmd :【19】.白名单极限测试2:添加59个白名单
+
+Message->HEADER = 5c
+Message->TYPE   = 20
+Message->SIGN   = 00 00 00 00
+Message->LEN    = 0a
+Message->DATA   = 3b 00 00 00 00 00 00 00 f8 76 
+Message->XOR    = 9f
+Message->END    = ca
+uart_send_cmd :【20】.查看白名单
+
+Message->HEADER = 5c
+Message->TYPE   = 2b
+Message->SIGN   = 00 00 00 00
+Message->LEN    = ed
+Message->DATA   = 3b 07 dd 00 01 07 dd 00 02 07 dd 00 03 07 dd 00 04 07 dd 00 05 07 dd 00 06 07 dd 00 07 07 dd 00 08 07 dd 00 09 07 dd 00 0a 07 dd 01 01 07 dd 01 02 07 dd 01 03 07 dd 01 04 07 dd 01 05 07 dd 01 06 07 dd 01 07 07 dd 01 08 07 dd 01 09 07 dd 01 0a 07 dd 02 01 07 dd 02 02 07 dd 02 03 07 dd 02 04 07 dd 02 05 07 dd 02 06 07 dd 02 07 07 dd 02 08 07 dd 02 09 07 dd 02 0a 07 dd 03 01 07 dd 03 02 07 dd 03 03 07 dd 03 04 07 dd 03 05 07 dd 03 06 07 dd 03 07 07 dd 03 08 07 dd 03 09 07 dd 03 0a 07 dd 04 01 07 dd 04 02 07 dd 04 03 07 dd 04 04 07 dd 04 05 07 dd 04 06 07 dd 04 07 07 dd 04 08 07 dd 04 09 07 dd 04 0a 07 dd 05 01 07 dd 05 02 07 dd 05 03 07 dd 05 04 07 dd 05 05 07 dd 05 06 07 dd 05 07 07 dd 05 08 07 dd 05 09 
+Message->XOR    = 28
+Message->END    = ca
+Message->HEADER = 5c
+Message->TYPE   = 2b
+Message->SIGN   = 00 00 00 00
+Message->LEN    = ed
+Message->DATA   = 76 07 11 00 01 07 11 00 02 07 11 00 03 07 11 00 04 07 11 00 05 07 11 00 06 07 11 00 07 07 11 00 08 07 11 00 09 07 11 00 0a 07 11 01 01 07 11 01 02 07 11 01 03 07 11 01 04 07 11 01 05 07 11 01 06 07 11 01 07 07 11 01 08 07 11 01 09 07 11 01 0a 07 11 02 01 07 11 02 02 07 11 02 03 07 11 02 04 07 11 02 05 07 11 02 06 07 11 02 07 07 11 02 08 07 11 02 09 07 11 02 0a 07 11 03 01 07 11 03 02 07 11 03 03 07 11 03 04 07 11 03 05 07 11 03 06 07 11 03 07 07 11 03 08 07 11 03 09 07 11 03 0a 07 11 04 01 07 11 04 02 07 11 04 03 07 11 04 04 07 11 04 05 07 11 04 06 07 11 04 07 07 11 04 08 07 11 04 09 07 11 04 0a 07 11 05 01 07 11 05 02 07 11 05 03 07 11 05 04 07 11 05 05 07 11 05 06 07 11 05 07 07 11 05 08 07 11 05 09 
+Message->XOR    = a9
+Message->END    = ca
+uart_send_cmd :【21】.白名单极限测试3:添加9个白名单
+
+Message->HEADER = 5c
+Message->TYPE   = 20
+Message->SIGN   = 00 00 00 00
+Message->LEN    = 0a
+Message->DATA   = 02 fc ff ff ff ff ff ff ff 78 
+Message->XOR    = 53
+Message->END    = ca
+uart_send_cmd :【22】.查看白名单
+
+Message->HEADER = 5c
+Message->TYPE   = 2b
+Message->SIGN   = 00 00 00 00
+Message->LEN    = ed
+Message->DATA   = 3b 07 dd 00 01 07 dd 00 02 07 dd 00 03 07 dd 00 04 07 dd 00 05 07 dd 00 06 07 dd 00 07 07 dd 00 08 07 dd 00 09 07 dd 00 0a 07 dd 01 01 07 dd 01 02 07 dd 01 03 07 dd 01 04 07 dd 01 05 07 dd 01 06 07 dd 01 07 07 dd 01 08 07 dd 01 09 07 dd 01 0a 07 dd 02 01 07 dd 02 02 07 dd 02 03 07 dd 02 04 07 dd 02 05 07 dd 02 06 07 dd 02 07 07 dd 02 08 07 dd 02 09 07 dd 02 0a 07 dd 03 01 07 dd 03 02 07 dd 03 03 07 dd 03 04 07 dd 03 05 07 dd 03 06 07 dd 03 07 07 dd 03 08 07 dd 03 09 07 dd 03 0a 07 dd 04 01 07 dd 04 02 07 dd 04 03 07 dd 04 04 07 dd 04 05 07 dd 04 06 07 dd 04 07 07 dd 04 08 07 dd 04 09 07 dd 04 0a 07 dd 05 01 07 dd 05 02 07 dd 05 03 07 dd 05 04 07 dd 05 05 07 dd 05 06 07 dd 05 07 07 dd 05 08 07 dd 05 09 
+Message->XOR    = 28
+Message->END    = ca
+Message->HEADER = 5c
+Message->TYPE   = 2b
+Message->SIGN   = 00 00 00 00
+Message->LEN    = ed
+Message->DATA   = 76 07 11 00 01 07 11 00 02 07 11 00 03 07 11 00 04 07 11 00 05 07 11 00 06 07 11 00 07 07 11 00 08 07 11 00 09 07 11 00 0a 07 11 01 01 07 11 01 02 07 11 01 03 07 11 01 04 07 11 01 05 07 11 01 06 07 11 01 07 07 11 01 08 07 11 01 09 07 11 01 0a 07 11 02 01 07 11 02 02 07 11 02 03 07 11 02 04 07 11 02 05 07 11 02 06 07 11 02 07 07 11 02 08 07 11 02 09 07 11 02 0a 07 11 03 01 07 11 03 02 07 11 03 03 07 11 03 04 07 11 03 05 07 11 03 06 07 11 03 07 07 11 03 08 07 11 03 09 07 11 03 0a 07 11 04 01 07 11 04 02 07 11 04 03 07 11 04 04 07 11 04 05 07 11 04 06 07 11 04 07 07 11 04 08 07 11 04 09 07 11 04 0a 07 11 05 01 07 11 05 02 07 11 05 03 07 11 05 04 07 11 05 05 07 11 05 06 07 11 05 07 07 11 05 08 07 11 05 09 
+Message->XOR    = a9
+Message->END    = ca
+Message->HEADER = 5c
+Message->TYPE   = 2b
+Message->SIGN   = 00 00 00 00
+Message->LEN    = 09
+Message->DATA   = 78 11 22 33 01 11 22 33 02 
+Message->XOR    = 59
+Message->END    = ca
+uart_send_cmd :【23】.初始化白名单
+
+Message->HEADER = 5c
+Message->TYPE   = 22
+Message->SIGN   = 00 00 00 00
+Message->LEN    = 01
+Message->DATA   = 00 
+Message->XOR    = 23
+Message->END    = ca
+uart_send_cmd :【24】.查看白名单
+
+Message->HEADER = 5c
+Message->TYPE   = 2b
+Message->SIGN   = 00 00 00 00
+Message->LEN    = 01
+Message->DATA   = 00 
+Message->XOR    = 2a
+Message->END    = ca

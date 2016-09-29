@@ -2,4 +2,3 @@
 [TEST] send cmd count         = 0x17
 [TEST] ok  instructions count = 0x1b
 [TEST] err instructions count = 0x0
-[TEST] test time              = 46.117000103
