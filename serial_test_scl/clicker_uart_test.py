@@ -87,7 +87,8 @@ def uart_send_cmd():
 		
 		ser.write(uart_cmd_data)
 		uart_send_cmd_num = uart_send_cmd_num + 1
-		sleep(0.3)
+		sleep(string.atoi(send_delayms, 10)*1.0/1000)
+
 
 if __name__=='__main__':
 	# open uart port
@@ -107,6 +108,7 @@ if __name__=='__main__':
 	selport  = config.get('setting', 'Port')
 	baudrate = config.get('setting', 'baudrate')
 	timeout  = config.get('setting', 'timeout')
+	send_delayms  = config.get('setting', 'send_delayms')
 	
 	# open serial port
 	ser = serial.Serial( string.atoi(selport, 10), string.atoi(baudrate, 10), timeout = string.atoi(timeout, 10))
@@ -114,6 +116,7 @@ if __name__=='__main__':
 	print "Open Port   : ",ser.portstr
 	print "Baudrate    :  "+baudrate
 	print "TimeOut     :  "+timeout
+	print "Send delayms:  "+send_delayms
 
 	uart_send_cmd_switch = input('Open or Close cmd send function : ( 0 : [OFF] , 1 : [ON] ) ')
 

@@ -1,5 +1,5 @@
-[TEST] read cmd file count    = 0x0
-[TEST] send cmd count         = 0x7
-[TEST] ok  instructions count = 0x7
+[TEST] read cmd file count    = 0x45
+[TEST] send cmd count         = 0x459
+[TEST] ok  instructions count = 0x455
 [TEST] err instructions count = 0x0
-[TEST] test time              = 1.9509999752
+[TEST] test time              = 2225.46899986
