@@ -82,7 +82,11 @@ def uart_send_cmd():
 	while True:
 		#uart_cmd_data = uart_get_cmd_message()
 		#print uart_cmd_data
+		path = os.path.abspath("../")
+		f = open(path + '\\test_file\clicker_test_temp_result.txt','a')
 		print "uart_send_cmd :"+uart_cmds[uart_test_cmd_index]
+		print >> f, "uart_send_cmd :"+uart_cmds[uart_test_cmd_index]
+		f.close()
 		uart_cmd_data = uart_cmds[uart_test_cmd_index+1]
 		uart_cmd_data = uart_cmd_data.strip('\n')
 		uart_cmd_data = uart_cmd_data.decode("hex")

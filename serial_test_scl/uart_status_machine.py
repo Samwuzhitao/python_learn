@@ -11,6 +11,7 @@ successful.
 """
 # import system module
 import string
+import os
 
 # import user module
 import uart_check
@@ -59,25 +60,35 @@ def uart_get_xor():
 	return uart_xor
 	
 def uart_show_message(str):
+	path = os.path.abspath("../")
+	f = open(path + '\\test_file\clicker_test_temp_result.txt','a')
 	print "Message->HEADER =",str[1:3]
+	print >> f,  "Message->HEADER =",str[1:3]
 	print "Message->TYPE   =",str[4:6]
+	print >> f,  "Message->TYPE   =",str[4:6]
 	
 	sign_str = str[7:18]
 	print "Message->SIGN   =",sign_str
+	print >> f,  "Message->SIGN   =",sign_str
 	
 	len_str = str[19:21]
 	print "Message->LEN    =",len_str
+	print >> f,  "Message->LEN    =",len_str
 	len_int = string.atoi(len_str, 16)
 	#print len_int
 	
 	data = str[22:22+len_int*3]
 	print "Message->DATA   =",data
+	print >> f,  "Message->DATA   =",data
 
 	Message_xor = str[22+len_int*3:22+len_int*3+2]
 	print "Message->XOR    =",Message_xor
+	print >> f,  "Message->XOR    =",Message_xor
 
 	Message_end = str[22+(len_int+1)*3:22+(len_int+1)*3+2]
 	print "Message->END    =",Message_end
+	print >> f,  "Message->END    =",Message_end
+	f.close()
 
 def uart_clear_pbuf(x):
 	global printf_str
