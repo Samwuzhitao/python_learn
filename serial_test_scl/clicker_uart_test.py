@@ -18,6 +18,7 @@ import string
 import linecache 
 import threading
 import ConfigParser
+import sys
 from time import sleep
 
 # import user module
@@ -35,12 +36,15 @@ def uart_update_cmd_index():
 	global 	uart_test_cmd_max
 	global uart_test_cmd_index
 	global uart_read_cmd_file_num
+	global test_num
 
 	uart_test_cmd_index = uart_test_cmd_index + 2 
 	
 	if uart_test_cmd_index == uart_test_cmd_max:
 		uart_test_cmd_index = 0
 		uart_read_cmd_file_num = uart_read_cmd_file_num + 1
+		if uart_read_cmd_file_num == test_num:
+			sys.exit(0)
 
 
 def store_test_result():
@@ -61,13 +65,13 @@ def store_test_result():
 
 def uart_compress_cmd():
 	global ser
-
 	while True:
 		read_char = ser.read(1)
 		uart_status_machine.uart_decode_machine(read_char)
 		if uart_status_machine.status == 100:
 			uart_status_machine.uart_change_status(0)
 			store_test_result()
+
 
 def uart_send_cmd():
 	global ser
@@ -82,10 +86,8 @@ def uart_send_cmd():
 		uart_cmd_data = uart_cmds[uart_test_cmd_index+1]
 		uart_cmd_data = uart_cmd_data.strip('\n')
 		uart_cmd_data = uart_cmd_data.decode("hex")
-		
-		uart_update_cmd_index()
-		
 		ser.write(uart_cmd_data)
+		uart_update_cmd_index()
 		uart_send_cmd_num = uart_send_cmd_num + 1
 		sleep(string.atoi(send_delayms, 10)*1.0/1000)
 
@@ -122,10 +124,13 @@ if __name__=='__main__':
 
 	if uart_send_cmd_switch == 1:
 		# open read test file name
-		uart_test_file_name = config.get('cmd_file_select', 'cmd_file_name')
+		uart_test_file_name = config.get('cmd_file_setting', 'cmd_file_name')
 		uart_test_file_name = path + '\\test_file\\' + uart_test_file_name
+		test_num = config.get('cmd_file_setting', 'test_num')
+		test_num =string.atoi(test_num, 10)
 		print "uart test file name : "+uart_test_file_name
-	
+		print "uart test file test times : ",test_num
+
 		# get the cmd num of the file 'clicker_test_cmd.txt'
 		uart_test_cmd_max = len(open(uart_test_file_name,'rU').readlines()) 
 		f = open(uart_test_file_name,'rU')
