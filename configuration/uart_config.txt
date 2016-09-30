@@ -9,4 +9,4 @@ file_store_switch:1
 [cmd_file_setting]
 
 cmd_file_name: clicker_function_test_cmd.txt
-test_num:1
+test_max:1

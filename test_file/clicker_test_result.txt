@@ -1,4 +1,0 @@
-[TEST] read cmd file count    = 0x1
-[TEST] send cmd count         = 0x17
-[TEST] ok  instructions count = 0x1b
-[TEST] err instructions count = 0x0
