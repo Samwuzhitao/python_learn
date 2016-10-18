@@ -11,14 +11,24 @@ successful.
 """
 import string
 
+class Clicker():
+	"""docstring for ClassName"""
+	def __init__(self):
+		self.uid = ""
+		self.cnt = 0
+
 def message_show_cmd_10(len,str,show_f):
 	#print "message_show_cmd_10"
-	show_str = "operation state         = "+str[0:2]
-	show_f(show_str,'a')
-	show_str = "white list switch state = "+str[3:5]
-	show_f(show_str,'a')
-	show_str = "white list switch len   = "+str[6:8]
-	show_f(show_str,'a')
+	if len/3 == 3:
+		show_str = "operation state         = "+str[0:2]
+		show_f(show_str,'a')
+		show_str = "white list switch state = "+str[3:5]
+		show_f(show_str,'a')
+		show_str = "white list switch len   = "+str[6:8]
+		show_f(show_str,'a')
+	else:
+		show_str = "clicker data is = "+str
+		show_f(show_str,'a')
 
 def message_show_cmd_12(len,str,show_f):
 	#print "message_show_cmd_12"
@@ -96,7 +106,7 @@ def message_show_cmd_2b(len,str,show_f):
 	#print "message_show_cmd_2b"
 	show_str = "read uid count  = "+str[0:2]
 	show_f(show_str,'a')
-	
+
 	i = 0
 	while i < len - 4:
 		uid = str[(i+1)*3:(i+5)*3-1]
@@ -118,9 +128,9 @@ def message_show_cmd_2c(len,str,show_f):
 	show_f(show_str,'a')
 
 def message_show_cmd_2d(len,str,show_f):
-	print "message_show_cmd_2d"
+	#print "message_show_cmd_2d"
 	i = 0
-	while i < len - 4:
+	while i < len :
 		uid = str[(i)*3:(i+4)*3-1]
 		show_str = "online uid %2d : %s " % (i/4,uid)
 		show_f(show_str,'a')
@@ -130,6 +140,24 @@ def message_show_cmd_2e(len,str,show_f):
 	#print "message_show_cmd_2e"
 	show_str = "revicer uid     = "+str[0:11]
 	show_f(show_str,'a')
+
+def message_show_cmd_2f(len,str,show_f):
+	#print "message_show_cmd_2f"
+	show_str = "operation state = "+str[0:2]
+	show_f(show_str,'a')
+
+def message_show_cmd_30(len,str,show_f):
+	#print "message_show_cmd_30"
+	if str[0:2] == "00":
+		str1 = str[3:]
+		show_str = "outline count : " + str[0:2]
+		show_f(show_str,'a')
+		i = 0
+		while i < len-1 :
+			uid = str1[(i)*3:(i+4)*3-1]
+			show_str = "outline uid %2d : %s " % (i/4,uid)
+			show_f(show_str,'a')
+			i = i + 4
 
 def message_show_cmd_fd(len,str,show_f):
 	#print "message_show_cmd_fd"
@@ -160,7 +188,7 @@ class UartM():
 		self.detailed_result_path    = ""
 		self.store_switch            = 0
 		self.Count                   = [ 0, 0, 0, 0 ]
-		self.funcSets                = {
+		self.ReviceFunSets           = {
 			"10":message_show_cmd_10,
 			"12":message_show_cmd_12,
 			"20":message_show_cmd_20,
@@ -178,10 +206,15 @@ class UartM():
 			"2c":message_show_cmd_2c,
 			"2d":message_show_cmd_2d,
 			"2e":message_show_cmd_2e,
+			"2f":message_show_cmd_2f,
+			"30":message_show_cmd_30,
 			"fd":message_show_cmd_fd,
 			"fe":message_show_cmd_fe,
 			"ff":message_show_cmd_ff,
 		}
+#		self.fun5aSets               = {
+#			"10":message_show_5a_cmd_10,
+#		}
 		#print "UartM Class init Ok!"
 
 	def set_detailed_file(self,str):
@@ -240,7 +273,7 @@ class UartM():
 		show_str = "Message->END    = "+end
 		self.show(show_str,'a')
 
-		self.funcSets[cmd_type](len_int,data,self.show)
+		self.ReviceFunSets[cmd_type](len_int,data,self.show)
 
 		show_str = "\n"
 		self.show(show_str,'a')
