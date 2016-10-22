@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+#coding:utf-8
 """\
 Scan for serial ports.
 
@@ -51,17 +52,29 @@ def uart_send_cmd_process():
 		# step 1: get cmd description
 		uart_cmd_des = uarts.get_cmd_des()
 		uart_cmd_des = uart_cmd_des.strip('\n')
-		uartm.show(uart_cmd_des,'a')
+		if uart_cmd_des[0:1] == "<":
+			uartm.show(uart_cmd_des[4:],'a')
+		else:
+			uartm.show(uart_cmd_des,'a')
 
 		# step 2: get cmd data
 		uart_cmd_data = uarts.get_cmd_data(uartm.count_inc)
+		# 剔除换行符
 		uart_cmd_data = uart_cmd_data.strip('\n')
-		uartm.show(uart_cmd_data,'a')
+		uartm.show(" "+uart_cmd_data,'a')
+		# 剔除多余空格
+		uart_cmd_data = uart_cmd_data.replace(' ','')
 
 		# step 3:send data
 		uart_cmd_data = uart_cmd_data.decode("hex")
 		ser.write(uart_cmd_data)
-		sleep(string.atoi(send_delayms, 10)*1.0/1000)
+
+		if uart_cmd_des[0:1] == "<":
+			#print "%d ms" % (string.atoi(uart_cmd_des[1:3], 10)*1000) 
+			sleep(string.atoi(uart_cmd_des[1:3], 10)*1000.0/1000)
+		else:
+			#print "%d ms" % (string.atoi(send_delayms, 10)) 
+			sleep(string.atoi(send_delayms, 10)*1.0/1000)
 
 		#step 4:check test times
 		if(uarts.get_test_index() == uarts.get_test_max()):

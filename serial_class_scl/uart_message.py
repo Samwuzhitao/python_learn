@@ -11,20 +11,25 @@ successful.
 """
 import string
 
-class Clicker():
-	"""docstring for ClassName"""
-	def __init__(self):
-		self.uid = ""
-		self.cnt = 0
+uidshowindex = 0
+uidshowflg   = 0
+
+def message_status_check(str):
+	status = string.atoi(str, 10)
+	if status == 0:
+		str1 = " Successed"
+	else:
+		str1 = " Fail"
+	return str1
 
 def message_show_cmd_10(len,str,show_f):
 	#print "message_show_cmd_10"
 	if len/3 == 3:
-		show_str = "operation state         = "+str[0:2]
-		show_f(show_str,'a')
+		show_f(message_status_check(str[0:2]),'a')
 		show_str = "white list switch state = "+str[3:5]
 		show_f(show_str,'a')
-		show_str = "white list switch len   = "+str[6:8]
+		uidlen = string.atoi(str[6:8],16)
+		show_str += " len = %d" % uidlen
 		show_f(show_str,'a')
 	else:
 		show_str = "clicker data is = "+str
@@ -32,99 +37,114 @@ def message_show_cmd_10(len,str,show_f):
 
 def message_show_cmd_12(len,str,show_f):
 	#print "message_show_cmd_12"
-	show_str = "operation state         = "+str[0:2]
-	show_f(show_str,'a')
+	show_f(message_status_check(str[0:2]),'a')
 	show_str = "white list switch state = "+str[3:5]
 	show_f(show_str,'a')
-	show_str = "white list switch len   = "+str[6:8]
+	uidlen = string.atoi(str[6:8],16)
+	show_str += " len = %d" % uidlen
 	show_f(show_str,'a')
 
 def message_show_cmd_20(len,str,show_f):
 	#print "message_show_cmd_20"
-	show_str = "white list new uid count = "+str[0:2]
+	show_str  = " new = "+str[0:2]
+	uidlen = string.atoi(str[27:29],16)
+	show_str += " len = %d" % uidlen
 	show_f(show_str,'a')
-	show_str = "white list add uid state = "+str[3:26]
-	show_f(show_str,'a')
-	show_str = "white list switch len    = "+str[27:29]
+	show_str = " detail state = "+str[3:26]
 	show_f(show_str,'a')
 
 def message_show_cmd_21(len,str,show_f):
 	#print "message_show_cmd_21"
-	show_str = "white list new uid count = "+str[0:2]
+	show_str  = " new = "+str[0:2]
+	uidlen = string.atoi(str[27:29],16)
+	show_str += " len = %d" % uidlen
 	show_f(show_str,'a')
-	show_str = "white list add uid state = "+str[3:26]
-	show_f(show_str,'a')
-	show_str = "white list switch len    = "+str[27:29]
+	show_str = " detail state = "+str[3:26]
 	show_f(show_str,'a')
 
 def message_show_cmd_22(len,str,show_f):
 	#print "message_show_cmd_22:white list init "
-	show_str = "operation state = "+str[0:2]
-	show_f(show_str,'a')
+	show_f(message_status_check(str[0:2]),'a')
 
 def message_show_cmd_23(len,str,show_f):
 	#print "message_show_cmd_22"
-	show_str = "operation state = "+str[0:2]
-	show_f(show_str,'a')
+	show_f(message_status_check(str[0:2]),'a')
 
 def message_show_cmd_24(len,str,show_f):
 	#print "message_show_cmd_23"
-	show_str = "operation state = "+str[0:2]
-	show_f(show_str,'a')
+	show_f(message_status_check(str[0:2]),'a')
 
 def message_show_cmd_25(len,str,show_f):
 	#print "message_show_cmd_25"
-	show_str = "operation state = "+str[0:2]
-	show_f(show_str,'a')
+	show_f(message_status_check(str[0:2]),'a')
 
 def message_show_cmd_26(len,str,show_f):
 	#print "message_show_cmd_26"
-	show_str = "new uid         = "+str[0:11]
+	show_str = " new uid = "+str[0:11]
 	show_f(show_str,'a')
 
 def message_show_cmd_27(len,str,show_f):
 	#print "message_show_cmd_27"
-	show_str = "operation state = "+str[0:2]
-	show_f(show_str,'a')
+	show_f(message_status_check(str[0:2]),'a')
 
 def message_show_cmd_28(len,str,show_f):
 	#print "message_show_cmd_28"
-	show_str = "operation state = "+str[0:2]
-	show_f(show_str,'a')
+	show_f(message_status_check(str[0:2]),'a')
 
 def message_show_cmd_29(len,str,show_f):
 	#print "message_show_cmd_29"
-	show_str = "new uid         = "+str[0:11]
+	show_str = " new uid = "+str[0:11]
 	show_f(show_str,'a')
 
 def message_show_cmd_2a(len,str,show_f):
 	#print "message_show_cmd_2a"
-	show_str = "operation state = "+str[0:2]
-	show_f(show_str,'a')
+	show_f(message_status_check(str[0:2]),'a')
 
 def message_show_cmd_2b(len,str,show_f):
 	#print "message_show_cmd_2b"
-	show_str = "read uid count  = "+str[0:2]
+	#print str
+	global uidshowindex
+	global uidshowflg
+
+	uidlen = string.atoi(str[0:2],16)
+	show_str = " read uid sum index : %d " % uidlen
 	show_f(show_str,'a')
 
+	if uidshowflg == 0:
+		uidshowindex = 0
+		uidshowflg = 1
+
 	i = 0
-	while i < len - 4:
+	j = 0
+	show_str = " "
+
+	while i < len :
 		uid = str[(i+1)*3:(i+5)*3-1]
-		show_str = "read uid %2d : %s " % (i/4,uid)
-		show_f(show_str,'a')
 		i = i + 4
+		if uid != "":
+			show_str += "[%3d].%s, " % (uidshowindex,uid)
+			uidshowindex = uidshowindex + 1
+			j = j + 1
+			if j == 4:
+				j = 0
+				show_f(show_str,'a')
+				show_str = " "
+		else:
+			show_f(show_str,'a')
+			show_str = " "
+
 
 def message_show_cmd_2c(len,str,show_f):
 	#print "message_show_cmd_2c"
 	uid       = str[0:11]
-	show_str  = "uid             = "+uid
+	show_str  = "uid = "+uid
 	show_f(show_str,'a')
 	sw_verion = str[12:20]
-	show_str  = "SW              = "+sw_verion
+	show_str  = "SW  = "+sw_verion
 	show_f(show_str,'a')
-	show_str  = "HW              = "+str[21:65]
+	show_str  = "HW  = "+str[21:65]
 	show_f(show_str,'a')
-	show_str  = "COM             = "+str[66:]
+	show_str  = "COM = "+str[66:]
 	show_f(show_str,'a')
 
 def message_show_cmd_2d(len,str,show_f):
@@ -132,52 +152,48 @@ def message_show_cmd_2d(len,str,show_f):
 	i = 0
 	while i < len :
 		uid = str[(i)*3:(i+4)*3-1]
-		show_str = "online uid %2d : %s " % (i/4,uid)
+		show_str = " online uid %2d : %s " % (i/4,uid)
 		show_f(show_str,'a')
 		i = i + 4
 
 def message_show_cmd_2e(len,str,show_f):
 	#print "message_show_cmd_2e"
-	show_str = "revicer uid     = "+str[0:11]
+	show_str = " Src uid :"+str[0:11]
 	show_f(show_str,'a')
 
 def message_show_cmd_2f(len,str,show_f):
 	#print "message_show_cmd_2f"
-	show_str = "operation state = "+str[0:2]
-	show_f(show_str,'a')
+	show_f(message_status_check(str[0:2]),'a')
 
 def message_show_cmd_30(len,str,show_f):
 	#print "message_show_cmd_30"
 	if str[0:2] == "00":
 		str1 = str[3:]
-		show_str = "outline count : " + str[0:2]
+		show_str = " outline count : " + str[0:2]
 		show_f(show_str,'a')
 		i = 0
 		while i < len-1 :
 			uid = str1[(i)*3:(i+4)*3-1]
-			show_str = "outline uid %2d : %s " % (i/4,uid)
+			show_str = " outline uid %2d : %s " % (i/4,uid)
 			show_f(show_str,'a')
 			i = i + 4
 
 def message_show_cmd_fd(len,str,show_f):
 	#print "message_show_cmd_fd"
-	show_str = "operation state = "+str[0:2]
-	show_f(show_str,'a')
-	show_str = "err code        = "+str[3:5]
+	show_f(message_status_check(str[0:2]),'a')
+	show_str = " err code = "+str[3:5]
 	show_f(show_str,'a')
 
 def message_show_cmd_fe(len,str,show_f):
 	#print "message_show_cmd_fe"
-	show_str = "operation state = "+str[0:2]
-	show_f(show_str,'a')
-	show_str = "err code        = "+str[3:5]
+	show_f(message_status_check(str[0:2]),'a')
+	show_str = " err code = "+str[3:5]
 	show_f(show_str,'a')
 
 def message_show_cmd_ff(len,str,show_f):
 	#print "message_show_cmd_ff"
-	show_str = "operation state = "+str[0:2]
-	show_f(show_str,'a')
-	show_str = "err code        = "+str[3:5]
+	show_f(message_status_check(str[0:2]),'a')
+	show_str = " err code = "+str[3:5]
 	show_f(show_str,'a')
 
 # import user module
@@ -212,10 +228,7 @@ class UartM():
 			"fe":message_show_cmd_fe,
 			"ff":message_show_cmd_ff,
 		}
-#		self.fun5aSets               = {
-#			"10":message_show_5a_cmd_10,
-#		}
-		#print "UartM Class init Ok!"
+
 
 	def set_detailed_file(self,str):
 		self.detailed_result_path = str
@@ -249,7 +262,7 @@ class UartM():
 			print >> f, str
 			f.close()
 
-	def message_show(self,str):
+	def message_show1(self,str):
 		show_str = "Message->HEADER = "+str[1:3]
 		self.show(show_str,'a')
 		cmd_type = str[4:6]
@@ -275,7 +288,23 @@ class UartM():
 
 		self.ReviceFunSets[cmd_type](len_int,data,self.show)
 
-		show_str = "\n"
+		show_str = " "
+		self.show(show_str,'a')
+
+	def message_show(self,str):
+		global uidshowflg
+
+		cmd_type = str[4:6]
+		len_str = str[19:21]
+		len_int = string.atoi(len_str, 16)
+		data = str[22:22+len_int*3]
+		xor = str[22+len_int*3:22+len_int*3+2]
+
+		if cmd_type != "2b":
+			uidshowflg = 0
+
+		self.ReviceFunSets[cmd_type](len_int,data,self.show)
+		show_str = " "
 		self.show(show_str,'a')
 
 	def store(self):
