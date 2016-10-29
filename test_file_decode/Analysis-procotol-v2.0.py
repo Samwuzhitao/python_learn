@@ -8,6 +8,10 @@ date:2016-10-16
 import os
 import string
 
+UID_MESSAGE_LEN      = 15
+UID_INDEX_NUMBER_LEN = 3
+
+
 class TestFile():
 	def __init__(self,file_name):
 		self.max          = 0
@@ -47,15 +51,18 @@ class TestFile():
 			if self.count == 3:
 				if self.sumcount != self.max:
 					self.lostflg = 1
+					return
 		if self.lostflg == 1:
 			if str1[0:1]  == "[":
-				for i in range(0,len(str1)/14):
-					str2 = str1[i*14:14+i*14]
-					self.lostuid = self.lostuid + str2[1:4] + ", "
+				for i in range(0,len(str1)/UID_MESSAGE_LEN):
+					str2 = str1[i*UID_MESSAGE_LEN:UID_MESSAGE_LEN+i*UID_MESSAGE_LEN]
+					self.lostuid = self.lostuid + str2[1:1+UID_INDEX_NUMBER_LEN] + ", "
+					return
 		if str1[0:3]  == "ok:":
 			if self.count == 3:
 				if self.sumcount != self.max:
 					self.lostflg = 0
+					return
 
 	def result_check(self,str1,check_lineindex):
 		if self.count == check_lineindex:
@@ -133,14 +140,14 @@ if __name__=='__main__':
 	one_ok_rate   = "  < %7.3f %% >" % (tf.ok[0]*100.0/tf.lineindex)
 	show_str = "One     count : %2d" % tf.ok[0]   + one_ok_rate
 	tf.show(show_str,'a')
-	two_ok_rate   = "  < %7.3f %% >" % (tf.ok[1]*100.0/tf.lineindex)
-	show_str = "Two     count : %2d" % tf.ok[1]   + two_ok_rate
+	two_ok_rate   = "  < %7.3f %% >" % ((tf.ok[0] + tf.ok[1])*100.0/tf.lineindex)
+	show_str = "Two     count : %2d" % (tf.ok[0] + tf.ok[1])   + two_ok_rate
 	tf.show(show_str,'a')
-	three_ok_rate = "  < %7.3f %% >" % (tf.ok[2]*100.0/tf.lineindex)
-	show_str = "Three   count : %2d" % tf.ok[2] + three_ok_rate
+	three_ok_rate = "  < %7.3f %% >" % ((tf.ok[0] + tf.ok[1] + tf.ok[2])*100.0/tf.lineindex)
+	show_str = "Three   count : %2d" % (tf.ok[0] + tf.ok[1] + tf.ok[2]) + three_ok_rate
 	tf.show(show_str,'a')
-	four_ok_rate  = "  < %7.3f %% >" % (tf.ok[3]*100.0/tf.lineindex)
-	show_str = "Four    count : %2d" % tf.ok[3]  + four_ok_rate
+	four_ok_rate  = "  < %7.3f %% >" % ((tf.ok[0] + tf.ok[1] + tf.ok[2] + tf.ok[3])*100.0/tf.lineindex)
+	show_str = "Four    count : %2d" % (tf.ok[0] + tf.ok[1] + tf.ok[2] + tf.ok[3])  + four_ok_rate
 	tf.show(show_str,'a')
 	fail_rate     = "  < %7.3f %% >" % ((tf.lineindex - ok_count)*100.0/tf.lineindex)
 	show_str = "Fail    count : %2d" % (tf.lineindex - ok_count) + fail_rate
