@@ -1,14 +1,8 @@
 #! /usr/bin/env python
 #coding:utf-8
 """\
-Scan for serial ports.
+uart_main for serial ports.
 
-Part of pySerial (http://pyserial.sf.net)
-(C) 2002-2003 <cliechti@gmx.net>
-
-The scan function of this module tries to open each port number
-from 0 to 255 and it builds a list of those ports where this was
-successful.
 """
 # import system module
 import serial
@@ -23,8 +17,8 @@ from time import sleep
 
 # import user module
 import uart_init
-import uart_send 
-import uart_decode 
+import uart_send
+import uart_decode
 import uart_message
 
 def uart_compress_cmd_process():
@@ -48,37 +42,60 @@ def uart_send_cmd_process():
 	global uartm
 	global uarts
 
-	while True:
-		# step 1: get cmd description
-		uart_cmd_des = uarts.get_cmd_des()
-		uart_cmd_des = uart_cmd_des.strip('\n')
-		if uart_cmd_des[0:1] == "<":
-			uartm.show(uart_cmd_des[4:],'a')
-		else:
-			uartm.show(uart_cmd_des,'a')
+	uarts.userflg = input('User or Auto cmd send : ( 0 : [user] , 1 : [auto] ) ')
 
-		# step 2: get cmd data
-		uart_cmd_data = uarts.get_cmd_data(uartm.count_inc)
-		# 剔除换行符
-		uart_cmd_data = uart_cmd_data.strip('\n')
-		uartm.show(" "+uart_cmd_data,'a')
-		# 剔除多余空格
-		uart_cmd_data = uart_cmd_data.replace(' ','')
+	if uarts.userflg == 1:
+		while True:
+			# step 1: get cmd description
+			uart_cmd_des = uarts.get_cmd_des()
+			uart_cmd_des = uart_cmd_des.strip('\n')
+			if uart_cmd_des[0:1] == "<":
+				uartm.show(uart_cmd_des[4:],'a')
+			else:
+				uartm.show(uart_cmd_des,'a')
 
-		# step 3:send data
-		uart_cmd_data = uart_cmd_data.decode("hex")
-		ser.write(uart_cmd_data)
+			# step 2: get cmd data
+			uart_cmd_data = uarts.get_cmd_data(uartm.count_inc)
+			# 剔除换行符
+			uart_cmd_data = uart_cmd_data.strip('\n')
+			uartm.show(" "+uart_cmd_data,'a')
+			# 剔除多余空格
+			uart_cmd_data = uart_cmd_data.replace(' ','')
 
-		if uart_cmd_des[0:1] == "<":
-			#print "%d ms" % (string.atoi(uart_cmd_des[1:3], 10)*1000) 
+			# step 3:send data
+			uart_cmd_data = uart_cmd_data.decode("hex")
+			ser.write(uart_cmd_data)
+
+			if uart_cmd_des[0:1] == "<":
+				#print "%d ms" % (string.atoi(uart_cmd_des[1:3], 10)*1000)
+				sleep(string.atoi(uart_cmd_des[1:3], 10)*1000.0/1000)
+			else:
+				#print "%d ms" % (string.atoi(send_delayms, 10))
+				sleep(string.atoi(send_delayms, 10)*1.0/1000)
+
+			#step 4:check test times
+			if(uarts.get_test_index() == uarts.get_test_max()):
+				sys.exit(0)
+	else:
+		while True:
+			uart_cmd_des = uarts.get_user_des()
+			uart_cmd_des = uart_cmd_des.strip('\n')
+			if uart_cmd_des[0:1] == "<":
+				uartm.show(uart_cmd_des[4:],'a')
+			else:
+				uartm.show(uart_cmd_des,'a')
+
+			uart_cmd_data = uarts.get_user_cmd()
+			# 剔除换行符
+			uart_cmd_data = uart_cmd_data.strip('\n')
+			# 剔除多余空格
+			uart_cmd_data = uart_cmd_data.replace(' ','')
+			# step 3:send data
+			uart_cmd_data = uart_cmd_data.decode("hex")
+			ser.write(uart_cmd_data)
+
 			sleep(string.atoi(uart_cmd_des[1:3], 10)*1000.0/1000)
-		else:
-			#print "%d ms" % (string.atoi(send_delayms, 10)) 
-			sleep(string.atoi(send_delayms, 10)*1.0/1000)
 
-		#step 4:check test times
-		if(uarts.get_test_index() == uarts.get_test_max()):
-			sys.exit(0)
 
 if __name__=='__main__':
 	#system init

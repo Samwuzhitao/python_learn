@@ -1,24 +1,27 @@
 #! /usr/bin/env python
 """\
-Scan for serial ports.
+uart_send for serial ports.
 
-Part of pySerial (http://pyserial.sf.net)
-(C) 2002-2003 <cliechti@gmx.net>
-
-The scan function of this module tries to open each port number
-from 0 to 255 and it builds a list of those ports where this was
-successful.
 """
 import ConfigParser
 import os
 import time
+from time import sleep
 
 class UartS():
 	def __init__(self):
-		self.TEST_MAX   = 0
-		self.test_index = 0
-		self.index      = 0
-		self.cmds       = []
+		self.TEST_MAX    = 0
+		self.test_index  = 0
+		self.index       = 0
+		self.cmds        = []
+		self.cmdlen      = 0
+		self.usercmds    = []
+		self.usercmdlen  = 0
+		self.usercmdsel  = 0
+		#self.SendFunSets = {
+		#	7:whitelist_add,
+		#	9:whitelist_delete,
+		#}
 		#print "UartS Class init Ok!"
 
 	def set_test_max(self,x):
@@ -69,7 +72,11 @@ class UartS():
 		self.cmds =f.readlines()
 		#print self.cmds
 		f.close()
-		print "clicker_test_cmd len = ",cmd_len/2
+		self.cmdlen = cmd_len/2
+		print "clicker auto cmd len = ",cmd_len/2
+		self.usercmdlen = 10
+		self.usercmds = self.cmds[0:20]
+		print "clicker user cmd len = ",self.usercmdlen
 
 	def get_cmd_des(self):
 		i = self.get_index()
@@ -79,3 +86,30 @@ class UartS():
 		i = self.get_index()
 		self.update_index(count_f)
 		return self.cmds[i+1]
+
+	def get_user_cmd(self):
+		if self.usercmdsel == 7:
+			print "7"
+			return  self.usercmds[2*self.usercmdsel+1]
+
+		if self.usercmdsel == 8:
+			print "8"
+			return  self.usercmds[2*self.usercmdsel+1]
+
+		if ((self.usercmdsel != 8) & (self.usercmdsel != 7)):
+			return  self.usercmds[2*self.usercmdsel+1]
+
+	def get_user_des(self):
+		self.usercmdsel = 0
+		print " User cmd operation: "
+		for i in range(0,self.usercmdlen):
+			cmd = self.usercmds[2*i]
+			cmd = cmd.strip('\n')
+			if cmd[0:1] == "<":
+				print " <%2d>" % i + cmd[10:]
+			else:
+				print " <%2d>" % i + cmd[6:]
+
+		self.usercmdsel = input(' Please select your cmd ( 0 .. %d ): ' % (self.usercmdlen-1) )
+
+		return  self.usercmds[2*self.usercmdsel]
