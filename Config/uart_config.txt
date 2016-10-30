@@ -1,12 +1,12 @@
 [setting]
 
-Port: 5
+Port: 7
 baudrate: 115200
 timeout: 120
-send_delayms: 2000
+send_delayms: 200
 file_store_switch:1
 
 [cmd_file_setting]
 
-cmd_file_name: clicker_function_test_cmd.txt
-test_max:1
+cmd_file_name: clicker_function_test_cmd1.txt
+test_max:10
