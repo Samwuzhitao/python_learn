@@ -80,7 +80,7 @@ def uart_send_cmd_process():
 				sys.exit(0)
 	else:
 		while True:
-			uartw.show_message_to_user()
+			uartw.show_message_to_user(ser.write)
 
 if __name__=='__main__':
 	# open uart port
@@ -88,7 +88,7 @@ if __name__=='__main__':
 	path = os.path.abspath("../")
 	print 'Please Ensure you have config the serial port in:'
 	print path + '\\Config\\' + 'uart_config.txt'
-	white_list_file = path + '\\Config\\' + 'white_list.txt'
+	white_list_file = path + '\\Config\\' + 'white_list_sum1.txt'
 	selport = raw_input("Press any key continue ...")
 
 	# get uart Config
@@ -148,14 +148,15 @@ if __name__=='__main__':
 	test_max = string.atoi(test_max, 10)
 	uarts.set_test_max(test_max)
 
-	show_str = "Test cmd file            : "+uart_cmd_file
+	show_str = "Test cmd file            : "+uart_cmd_file[len(path):]
 	uartm.show(show_str,'a')
-	show_str = "Test detailed results    : "+uart_test_temp_result_file
+	show_str = "Test detailed results    : "+uart_test_temp_result_file[len(path):]
 	uartm.show(show_str,'a')
-	show_str = "Test statistical results : "+uart_test_result_file
+	show_str = "Test statistical results : "+uart_test_result_file[len(path):]
 	uartm.show(show_str,'a')
 
-	uart_send_cmd_switch = input('Open or Close cmd send function : ( 0 : [OFF] , 1 : [ON] ) ')
+	#uart_send_cmd_switch = input('Open or Close cmd send function : ( 0 : [OFF] , 1 : [ON] ) ')
+	uart_send_cmd_switch = 1
 
 	if uart_send_cmd_switch == 1:
 		uarts.init_cmds(uart_cmd_file)

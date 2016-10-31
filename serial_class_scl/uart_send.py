@@ -74,9 +74,9 @@ class UartS():
 		f.close()
 		self.cmdlen = cmd_len/2
 		print "clicker auto cmd len = ",cmd_len/2
-		self.usercmdlen = 10
-		self.usercmds = self.cmds[0:20]
-		print "clicker user cmd len = ",self.usercmdlen
+		#self.usercmdlen = 10
+		#self.usercmds = self.cmds[0:20]
+		#print "clicker user cmd len = ",self.usercmdlen
 
 	def get_cmd_des(self):
 		i = self.get_index()
@@ -87,29 +87,25 @@ class UartS():
 		self.update_index(count_f)
 		return self.cmds[i+1]
 
-	def get_user_cmd(self):
-		if self.usercmdsel == 7:
-			print "7"
-			return  self.usercmds[2*self.usercmdsel+1]
+	#def get_user_cmd(self):
+	#	if self.usercmdsel == 7:
+	#		print "7"
+	#		return  self.usercmds[2*self.usercmdsel+1]
+	#	if self.usercmdsel == 8:
+	#		print "8"
+	#		return  self.usercmds[2*self.usercmdsel+1]
+	#	if ((self.usercmdsel != 8) & (self.usercmdsel != 7)):
+	#		return  self.usercmds[2*self.usercmdsel+1]
 
-		if self.usercmdsel == 8:
-			print "8"
-			return  self.usercmds[2*self.usercmdsel+1]
-
-		if ((self.usercmdsel != 8) & (self.usercmdsel != 7)):
-			return  self.usercmds[2*self.usercmdsel+1]
-
-	def get_user_des(self):
-		self.usercmdsel = 0
-		print " User cmd operation: "
-		for i in range(0,self.usercmdlen):
-			cmd = self.usercmds[2*i]
-			cmd = cmd.strip('\n')
-			if cmd[0:1] == "<":
-				print " <%2d>" % i + cmd[10:]
-			else:
-				print " <%2d>" % i + cmd[6:]
-
-		self.usercmdsel = input(' Please select your cmd ( 0 .. %d ): ' % (self.usercmdlen-1) )
-
-		return  self.usercmds[2*self.usercmdsel]
+	#def get_user_des(self):
+	#	self.usercmdsel = 0
+	#	print " User cmd operation: "
+	#	for i in range(0,self.usercmdlen):
+	#		cmd = self.usercmds[2*i]
+	#		cmd = cmd.strip('\n')
+	#		if cmd[0:1] == "<":
+	#			print " <%2d>" % i + cmd[10:]
+	#		else:
+	#			print " <%2d>" % i + cmd[6:]
+	#	self.usercmdsel = input(' Please select your cmd ( 0 .. %d ): ' % (self.usercmdlen-1) )
+	#	return  self.usercmds[2*self.usercmdsel]

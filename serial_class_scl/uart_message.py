@@ -7,8 +7,9 @@ uart_message for serial ports.
 import string
 import uart_whitelist
 
-uidshowindex = 0
-uidshowflg   = 0
+uidshowindex     = 0
+uidshowflg       = 0
+UID_SHOW_COL_NUM = 5
 
 def message_status_check(str):
 	status = string.atoi(str, 10)
@@ -123,10 +124,10 @@ def message_show_cmd_2b(len,str,show_f):
 		uid = uid.replace(' ','')
 		i = i + 4
 		if uid != "":
-			show_str     += "[%3d].%s, " % (uidshowindex,uid)
+			show_str     += "[%3d].%s " % (uidshowindex,uid)
 			uidshowindex = uidshowindex + 1
 			j = j + 1
-		if j == 4:
+		if j == UID_SHOW_COL_NUM:
 			j = 0
 			show_f(show_str,'a')
 			show_str = " "
