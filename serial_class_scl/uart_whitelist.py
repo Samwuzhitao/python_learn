@@ -77,14 +77,13 @@ class WhiteList():
 		self.uids   = []
 
 	def get_update_uid_cmd(self):
-		updatecmdheader = '5C'
-		updatecmdtype   = '20'
-		updatecmdsign   = '00000000'
-		updatecmdlen    = "%02x" % (self.len) 
-		updatecmduids   = ''
+		cmdtype   = '20'
+		cmdsign   = '00000000'
+		cmdlen    = "%02x" % (self.len) 
+		cmduids   = ''
 		for uid in self.uids: 
-			updatecmduids += uid[0:8]
-		data = updatecmdtype+updatecmdsign+updatecmdlen+updatecmduids
+			cmduids += uid[0:8]
+		data = cmdtype+cmdsign+cmdlen+cmduids
 		#print data
 		i = 0
 		xor = 0
@@ -95,8 +94,9 @@ class WhiteList():
 			xor = xor ^ char
 			#print char
 		xor = "%02x"% xor
-		cmddata = updatecmdheader + data + xor + 'ca'
+		cmddata = '5c' + data + xor + 'ca'
 		print  cmddata
+		return cmddata
 
 	def show_message_to_user(self):
 		print '[1].add uid '
@@ -143,13 +143,3 @@ class WhiteList():
 				self.add(uid)
 				self.show()
 				return
-
-if __name__=='__main__':
-	path = os.path.abspath("../")
-	path = path + '\\Config\\' + 'white_list.txt'
-
-	wl = WhiteList(path)
-
-	while True:
-		wl.show_message_to_user()
-

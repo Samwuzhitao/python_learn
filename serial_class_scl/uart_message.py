@@ -5,6 +5,7 @@ uart_message for serial ports.
 
 """
 import string
+import uart_whitelist
 
 uidshowindex = 0
 uidshowflg   = 0

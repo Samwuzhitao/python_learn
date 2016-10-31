@@ -20,6 +20,7 @@ import uart_init
 import uart_send
 import uart_decode
 import uart_message
+import uart_whitelist
 
 def uart_compress_cmd_process():
 	global ser
@@ -41,6 +42,7 @@ def uart_send_cmd_process():
 	global uartr
 	global uartm
 	global uarts
+	global uartw
 
 	uarts.userflg = input('User or Auto cmd send : ( 0 : [user] , 1 : [auto] ) ')
 
@@ -78,41 +80,20 @@ def uart_send_cmd_process():
 				sys.exit(0)
 	else:
 		while True:
-			uart_cmd_des = uarts.get_user_des()
-			uart_cmd_des = uart_cmd_des.strip('\n')
-			if uart_cmd_des[0:1] == "<":
-				uartm.show(uart_cmd_des[4:],'a')
-			else:
-				uartm.show(uart_cmd_des,'a')
-
-			uart_cmd_data = uarts.get_user_cmd()
-			# 剔除换行符
-			uart_cmd_data = uart_cmd_data.strip('\n')
-			# 剔除多余空格
-			uart_cmd_data = uart_cmd_data.replace(' ','')
-			# step 3:send data
-			uart_cmd_data = uart_cmd_data.decode("hex")
-			ser.write(uart_cmd_data)
-
-			sleep(string.atoi(uart_cmd_des[1:3], 10)*1000.0/1000)
-
+			uartw.show_message_to_user()
 
 if __name__=='__main__':
-	#system init
-	uarts = uart_send.UartS()
-	uartr = uart_decode.UartR()
-	uartm = uart_message.UartM()
-
 	# open uart port
 	uart_init.uart_scan();
 	path = os.path.abspath("../")
 	print 'Please Ensure you have config the serial port in:'
-	print path + '\\configuration\\' + 'uart_config.txt'
+	print path + '\\Config\\' + 'uart_config.txt'
+	white_list_file = path + '\\Config\\' + 'white_list.txt'
 	selport = raw_input("Press any key continue ...")
 
-	# get uart configuration
+	# get uart Config
 	config = ConfigParser.ConfigParser()
-	config.readfp(open(path + '\\configuration\\' + 'uart_config.txt', "rb"))
+	config.readfp(open(path + '\\Config\\' + 'uart_config.txt', "rb"))
 	selport                = config.get('setting', 'Port')
 	baudrate               = config.get('setting', 'baudrate')
 	timeout                = config.get('setting', 'timeout')
@@ -120,6 +101,12 @@ if __name__=='__main__':
 	uart_file_store_switch = config.get('setting', 'file_store_switch')
 	uart_cmd_file_name     = config.get('cmd_file_setting', 'cmd_file_name')
 	test_max               = config.get('cmd_file_setting', 'test_max')
+
+	#system init
+	uarts = uart_send.UartS()
+	uartr = uart_decode.UartR()
+	uartm = uart_message.UartM()
+	uartw = uart_whitelist.WhiteList(white_list_file)
 
 	# update store switch status
 	uartm.set_store_switch(string.atoi(uart_file_store_switch, 10))
@@ -129,7 +116,7 @@ if __name__=='__main__':
 	now = time.strftime( ISOTIMEFORMAT, time.localtime( time.time() ) )
 
 	# show test file path
-	path = path + '\\test_file\\'
+	path = path + '\\Result\\'
 	uart_cmd_file              = path + uart_cmd_file_name
 	uart_test_temp_result_file = path + 'clicker_temp_result-' + now + '.txt'
 	uart_test_result_file      = path + 'clicker_test_result-' + now +'.txt'
