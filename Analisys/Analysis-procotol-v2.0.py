@@ -10,7 +10,7 @@ import string
 
 UID_MESSAGE_LEN      = 15
 UID_INDEX_NUMBER_LEN = 3
-
+CHECKOUT_UID_PROCESS = 4
 
 class TestFile():
 	def __init__(self,file_name):
@@ -48,27 +48,27 @@ class TestFile():
 
 	def show_lost_uid(self,str1):
 		if str1[0:5]  == "lost:":
-			if self.count == 3:
+			if self.count == CHECKOUT_UID_PROCESS:
 				if self.sumcount != self.max:
 					self.lostflg = 1
-					return
+				return
 		if self.lostflg == 1:
 			if str1[0:1]  == "[":
 				for i in range(0,len(str1)/UID_MESSAGE_LEN):
 					str2 = str1[i*UID_MESSAGE_LEN:UID_MESSAGE_LEN+i*UID_MESSAGE_LEN]
 					self.lostuid = self.lostuid + str2[1:1+UID_INDEX_NUMBER_LEN] + ", "
-					return
+				return
 		if str1[0:3]  == "ok:":
-			if self.count == 3:
+			if self.count == CHECKOUT_UID_PROCESS:
 				if self.sumcount != self.max:
 					self.lostflg = 0
-					return
+				return
 
 	def result_check(self,str1,check_lineindex):
 		if self.count == check_lineindex:
 			self.sumcount += string.atoi(str1[6:], 10)
 			self.linecount[check_lineindex-1] += string.atoi(str1[6:], 10)
-			self.str = self.str + " " + "[%d]:count=" % self.count + "%3d" % self.linecount[check_lineindex-1] + ","
+			self.str = self.str + " " + "[%d]:count:" % self.count + "%3d" % self.linecount[check_lineindex-1] + ","
 			if self.sumcount == self.max:
 				self.ok[check_lineindex-1] = self.ok[check_lineindex-1] + 1
 				self.sumcount = 0
@@ -86,6 +86,7 @@ class TestFile():
 		str1 = str1.strip('\n')
 
 		self.set_count_num(str1)
+
 		self.show_lost_uid(str1)
 
 		if str1[0:5]  == "count":
@@ -109,6 +110,7 @@ class TestFile():
 			self.lostuid    = ""
 			self.sumcount   = 0
 			self.linecount = [0,0,0,0]
+
 
 	def decode_file(self):
 		for line in self.filelines:
