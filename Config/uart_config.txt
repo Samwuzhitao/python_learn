@@ -8,5 +8,5 @@ file_store_switch:1
 
 [cmd_file_setting]
 
-cmd_file_name: clicker_function_test_cmd1.txt
-test_max:10
+cmd_file_name: clicker_white_list_test_cmd.txt
+test_max:20
