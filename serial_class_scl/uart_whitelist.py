@@ -104,14 +104,19 @@ class WhiteList():
 		#print cmduids
 		return cmduids
 
-	def xor_cmd_data(self,data):
-		cmdtype   = '20'
+	def xor_cmd_data(self,data,type='20'):
+		cmdtype   = type
 		cmdsign   = '00000000'
-		cmdlen    = "%02x" % (len(data)/2+1)
-		uidlen    = "%02x" % (len(data)/8)
 		i   = 0
 		xor = 0
-		data = cmdtype + cmdsign + cmdlen + uidlen + data
+		if cmdtype == '20':
+			cmdlen    = "%02x" % (len(data)/2+1)
+			uidlen    = "%02x" % (len(data)/8)
+			data = cmdtype + cmdsign + cmdlen + uidlen + data
+		else:
+			cmdlen    = "%02x" % (len(data)/2)
+			data = cmdtype + cmdsign + cmdlen + data
+
 		while i < len(data):
 			char  = data[i:i+2]
 			i += 2
@@ -135,7 +140,40 @@ class WhiteList():
 		print '[4].show white list uids '
 		print '[5].update uid to stm32'
 		print '[6].check uid from stm32'
+		print '[7].set send data process parameter'
+		print '[8].bind student id '
 		self.cmd = input("Please input your select\r\n>>>")
+		if self.cmd == 8:
+			studentid = input("Please input student id\r\n>>>")
+			tempcmd  = "%02x" % (studentid%256)
+			tempcmd += "%02x" % (studentid/256)
+			tempcmd += "000000000000000000000000000000000000"
+			tempcmd = self.xor_cmd_data(tempcmd,type='28')
+			self.send_data_to_stm32(tempcmd,send_data_f)
+			return
+
+		if self.cmd == 7:
+			pre_data_count   = input("Please input pre_data_count\r\n>>>")
+			tempcmd  = "%02x" % (pre_data_count)
+			pre_data_delayms = input("Please input pre_data_delay(100us)\r\n>>>")
+			tempcmd += "%02x" % (pre_data_delayms%256)
+			tempcmd += "%02x" % (pre_data_delayms/256)
+			data_count       = input("Please input data_count\r\n>>>")
+			tempcmd += "%02x" % (data_count)
+			data_delayms     = input("Please input data_delay(100us)\r\n>>>")
+			tempcmd += "%02x" % (data_delayms%256)
+			tempcmd += "%02x" % (data_delayms/256)
+			rand_delayms     = input("Please input rand_delay(ms)\r\n>>>")
+			tempcmd += "%02x" % (rand_delayms%256)
+			tempcmd += "%02x" % (rand_delayms/256)
+			retransmit_count = input("Please input retransmit count\r\n>>>")
+			tempcmd += "%02x" % retransmit_count
+			print tempcmd
+			tempcmd = self.xor_cmd_data(tempcmd,type='a0')
+			print tempcmd
+			self.send_data_to_stm32(tempcmd,send_data_f)
+			return
+
 		if self.cmd == 6:
 			showcmd = "5C2b00000000002bCA"
 			#checkcmd = checkcmd.decode("hex")

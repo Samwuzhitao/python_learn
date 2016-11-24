@@ -26,6 +26,19 @@ def message_status_check1(str):
 	else:
 		str1 = " Busy"
 	return str1
+def message_process_show(x,show_f):
+	if x == 1:
+		show_str = "First Statistic:"
+		show_f(show_str,'a')
+	if x == 2:
+		show_str = "Second Statistic:"
+		show_f(show_str,'a')
+	if x == 3:
+		show_str = "Third Statistic:"
+		show_f(show_str,'a')
+	if x == 4:
+		show_str = "Fourth Statistic:"
+		show_f(show_str,'a')
 
 def message_show_cmd_10(len,str,show_f):
 	#print "message_show_cmd_10"
@@ -34,6 +47,10 @@ def message_show_cmd_10(len,str,show_f):
 	uidlen   = string.atoi(str[6:8],16)
 	show_str += " len = %d" % uidlen
 	show_f(show_str,'a')
+
+def message_show_cmd_11(len,str,show_f):
+	#print "message_show_cmd_10"
+	print str
 
 def message_show_cmd_12(len,str,show_f):
 	#print "message_show_cmd_12"
@@ -81,7 +98,7 @@ def message_show_cmd_25(len,str,show_f):
 
 def message_show_cmd_26(len,str,show_f):
 	#print "message_show_cmd_26"
-	show_str = " new uid = "+str[0:11]
+	show_str = " Pos:%3d Uid:%s " % (string.atoi(str[0:2],16),str[3:])
 	show_f(show_str,'a')
 
 def message_show_cmd_27(len,str,show_f):
@@ -94,7 +111,7 @@ def message_show_cmd_28(len,str,show_f):
 
 def message_show_cmd_29(len,str,show_f):
 	#print "message_show_cmd_29"
-	show_str = " new uid = "+str[0:11]
+	show_str = " Pos:%3d Uid:%s " % (string.atoi(str[0:2],16),str[3:])
 	show_f(show_str,'a')
 
 def message_show_cmd_2a(len,str,show_f):
@@ -108,7 +125,7 @@ def message_show_cmd_2b(len,str,show_f):
 	global uidshowflg
 
 	uidlen   = string.atoi(str[0:2],16)
-	show_str = " read uid sum index : %d " % uidlen
+	show_str = " uid sum : %d " % uidlen
 	show_f(show_str,'a')
 
 	if uidshowflg == 0:
@@ -120,11 +137,11 @@ def message_show_cmd_2b(len,str,show_f):
 	show_str = " "
 
 	while i < len :
-		uid = str[(i+1)*3:(i+5)*3-1]
+		uid = str[(i+1)*3:(i+6)*3-1]
 		uid = uid.replace(' ','')
-		i = i + 4
+		i = i + 5
 		if uid != "":
-			show_str     += "[%3d].%s " % (uidshowindex,uid)
+			show_str     += "[%3d].%s " % (string.atoi(uid[0:2],16),uid[2:])
 			uidshowindex = uidshowindex + 1
 			j = j + 1
 		if j == UID_SHOW_COL_NUM:
@@ -178,50 +195,59 @@ def message_show_cmd_2f(len,str,show_f):
 
 def message_show_cmd_30(len,str,show_f):
 	#print "message_show_cmd_30"
+	message_process_show(string.atoi(str[0:3], 16),show_f)
 	show_str = "lost:"
 	show_f(show_str,'a')
-	i = 0
+	i = 1
 	j = 0
-	show_str = " "
-	while i < len :
-		uid = str[(i)*3:(i+4)*3-1]
+	show_str = ""
+	while i < len-3 :
+		uid = str[(i)*3:(i+5)*3-1]
 		uid = uid.replace(' ','')
-		i = i + 4
-		show_str += " %s " % uid
+		i = i + 5
+		show_str += "[%3d].%s " % (string.atoi(uid[0:2], 16),uid[2:])
 		j = j + 1
 		if j == 5 :
 			j = 0
 			show_f(show_str,'a')
-			show_str = " "
-		if i >= len :
+			show_str = ""
+		if i >= len-3 :
 			show_f(show_str,'a')
-			show_str = " "
-	show_str = " count:%d" % (len/4)
+			show_str = ""
+	show_str = "count:%d" % (len/5)
 	show_f(show_str,'a')
 
 def message_show_cmd_31(len,str,show_f):
 	#print "message_show_cmd_31"
+	message_process_show(string.atoi(str[0:3], 16),show_f)
 	show_str = "Ok:"
 	show_f(show_str,'a')
-	i = 0
+	i = 1
 	j = 0
-	show_str = " "
-	while i < len :
-		uid = str[(i)*3:(i+4)*3-1]
+	show_str = ""
+	while i < len - 3:
+		uid = str[(i)*3:(i+5)*3-1]
 		uid = uid.replace(' ','')
-		i = i + 4
-		show_str += " %s " % uid
+		i = i + 5
+		show_str += "[%3d].%s " % (string.atoi(uid[0:2], 16),uid[2:])
 		j = j + 1
 		if j == 5 :
 			j = 0
 			show_f(show_str,'a')
-			show_str = " "
-		if i >= len :
+			show_str = ""
+		if i >= len-3 :
 			show_f(show_str,'a')
-			show_str = " "
+			show_str = ""
 
-	show_str = " count:%d" % (len/4)
+	show_str = "count:%d" % (len/5)
 	show_f(show_str,'a')
+
+def message_show_cmd_a0(len,str,show_f):
+	#print "message_show_cmd_a0"
+	show_f(message_status_check(str[0:2]),'a')
+	#show_str = " err code = "+str[3:5]
+	#show_f(show_str,'a')
+	#print str
 
 def message_show_cmd_fd(len,str,show_f):
 	#print "message_show_cmd_fd"
@@ -260,6 +286,7 @@ class UartM():
 			"2c":message_show_cmd_2c,"2d":message_show_cmd_2d,
 			"2e":message_show_cmd_2e,"2f":message_show_cmd_2f,
 			"30":message_show_cmd_30,"31":message_show_cmd_31,
+			"a0":message_show_cmd_a0,
 			"fd":message_show_cmd_fd,
 			"fe":message_show_cmd_fe,
 			"ff":message_show_cmd_ff,

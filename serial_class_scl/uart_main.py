@@ -126,7 +126,7 @@ if __name__=='__main__':
 	uartm.set_statistical_path(uart_test_result_file)
 
 	# open serial port
-	ser = serial.Serial( string.atoi(selport, 10), string.atoi(baudrate, 10), timeout = string.atoi(timeout, 10))
+	ser = serial.Serial( string.atoi(selport, 10), string.atoi(baudrate, 10))
 	show_str = "Config Port :  "+selport
 	uartm.show(show_str,'w')
 	show_str = "Open Port   :  "+ser.portstr
