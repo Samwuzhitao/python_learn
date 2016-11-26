@@ -88,7 +88,7 @@ if __name__=='__main__':
 	path = os.path.abspath("../")
 	print 'Please Ensure you have config the serial port in:'
 	print path + '\\Config\\' + 'uart_config.txt'
-	white_list_file = path + '\\Config\\' + 'white_list_sum1.txt'
+	white_list_file = path + '\\Config\\' + 'white_list_init_table.txt'
 	selport = raw_input("Press any key continue ...")
 
 	# get uart Config
@@ -116,14 +116,19 @@ if __name__=='__main__':
 	now = time.strftime( ISOTIMEFORMAT, time.localtime( time.time() ) )
 
 	# show test file path
-	path = path + '\\Result\\'
-	uart_cmd_file              = path + uart_cmd_file_name
-	uart_test_temp_result_file = path + 'clicker_temp_result-' + now + '.txt'
+
+	cmd_path                   = path + '\\CmdFile\\'
+	uid_table_path             =  path + '\\Config\\' + 'white_list_init_table.txt'
+	path                       = path + '\\OutPut\\'
+	uart_cmd_file              = cmd_path + uart_cmd_file_name
+	result_file                = uart_cmd_file_name.strip('txt')
+	uart_test_temp_result_file = path + result_file[5:] + '-' + now + '.txt'
 	uart_test_result_file      = path + 'clicker_test_result-' + now +'.txt'
 
 	uartm.set_cmd_path(uart_cmd_file)
 	uartm.set_detailed_file(uart_test_temp_result_file)
 	uartm.set_statistical_path(uart_test_result_file)
+	uartm.set_uid_table_path(uid_table_path)
 
 	# open serial port
 	ser = serial.Serial( string.atoi(selport, 10), string.atoi(baudrate, 10))
