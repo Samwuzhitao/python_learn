@@ -130,7 +130,7 @@ if __name__=='__main__':
 	path = os.path.abspath("./")
 
 	# get the cmd num of the file 'testfile.txt'
-	file_path = path + '\\testfile.txt'
+	file_path = path + '\\analysis_hex_file.txt'
 	tf = TestFile(file_path)
 	tf.analysispath = path + '\\analysisfile.txt'
 
@@ -141,27 +141,28 @@ if __name__=='__main__':
 	tf.show(show_str,'a')
 	tf.decode_file()
 
+	clicker_sum = (tf.lineindex-tf.startindex+1)
 	show_str = "Test statistical result:"
 	tf.show(show_str,'a')
-	show_str = "Time          : %d min" % ((tf.lineindex-tf.startindex)*4.0/60)
+	show_str = "Time          : %d min" % (clicker_sum*4.0/60)
 	tf.show(show_str,'a')
-	show_str = "Sum     count : %6d" % (tf.lineindex-tf.startindex)
+	show_str = "Sum     count : %6d" % clicker_sum
 	tf.show(show_str,'a')
 	ok_count = tf.ok[0] + tf.ok[1] + tf.ok[2] + tf.ok[3]
-	show_str = "Success count : %6d" % ok_count + "  < %7.3f %% >" % (ok_count*100.0 / (tf.lineindex-tf.startindex))
+	show_str = "Success count : %6d" % ok_count + "  < %7.3f %% >" % (ok_count*100.0 / clicker_sum)
 	tf.show(show_str,'a')
-	one_ok_rate   = "  < %7.3f %% >" % (tf.ok[0]*100.0/(tf.lineindex-tf.startindex))
+	one_ok_rate   = "  < %7.3f %% >" % (tf.ok[0]*100.0/clicker_sum)
 	show_str = "One     count : %6d" % tf.ok[0]   + one_ok_rate
 	tf.show(show_str,'a')
-	two_ok_rate   = "  < %7.3f %% >" % ((tf.ok[1])*100.0/(tf.lineindex-tf.startindex))
+	two_ok_rate   = "  < %7.3f %% >" % ((tf.ok[1])*100.0/clicker_sum)
 	show_str = "Two     count : %6d" % (tf.ok[1])   + two_ok_rate
 	tf.show(show_str,'a')
-	three_ok_rate = "  < %7.3f %% >" % ((tf.ok[2])*100.0/(tf.lineindex-tf.startindex))
+	three_ok_rate = "  < %7.3f %% >" % ((tf.ok[2])*100.0/clicker_sum)
 	show_str = "Three   count : %6d" % (tf.ok[2]) + three_ok_rate
 	tf.show(show_str,'a')
-	four_ok_rate  = "  < %7.3f %% >" % ((tf.ok[3])*100.0/(tf.lineindex-tf.startindex))
+	four_ok_rate  = "  < %7.3f %% >" % ((tf.ok[3])*100.0/clicker_sum)
 	show_str = "Four    count : %6d" % (tf.ok[3])  + four_ok_rate
 	tf.show(show_str,'a')
-	fail_rate     = "  < %7.3f %% >" % ((tf.lineindex - tf.startindex - ok_count)*100.0/(tf.lineindex-tf.startindex))
-	show_str = "Fail    count : %6d" % (tf.lineindex - tf.startindex - ok_count) + fail_rate
+	fail_rate     = "  < %7.3f %% >" % ((clicker_sum - ok_count)*100.0/clicker_sum)
+	show_str = "Fail    count : %6d" % (clicker_sum - ok_count) + fail_rate
 	tf.show(show_str,'a')
