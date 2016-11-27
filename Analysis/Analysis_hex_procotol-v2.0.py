@@ -7,22 +7,27 @@ uart_message for serial ports.
 import os
 import string
 
-uidshowindex     = 0
-uidshowflg       = 0
-UID_SHOW_COL_NUM = 5
-UID_LOST_COUNT   = 0
-UID_OK_COUNT     = 0
-UID_MAX_COUNT    = 0
-UID_COUNT        = 0
+uid_init_flg        = 0
+uidshowindex        = 0
+uidshowflg          = 0
+UID_SHOW_COL_NUM    = 5
+UID_LOST_COUNT      = 0
+UID_OK_COUNT        = 0
+UID_MAX_COUNT       = 0
+UID_COUNT           = 0
 UID_STATISTIC_INDEX = 1
+WHITE_LIST_LEN      = 120
+UID_CMD_START_ADDR  = 8
 
 def message_status_check(str):
+	global uartm
+
 	status = string.atoi(str, 10)
 	if status == 0:
-		str1 = " Successed"
+		show_str  = uartm.cmdindex + " Successed"
 	else:
-		str1 = " Fail"
-	return str1
+		show_str  = uartm.cmdindex + " Fail"
+	return show_str
 
 def message_status_check1(str):
 	status = string.atoi(str, 10)
@@ -34,6 +39,9 @@ def message_status_check1(str):
 
 def message_process_show(x,show_f):
 	global UID_STATISTIC_INDEX
+
+	show_str = " "
+	show_f(show_str,'a')
 
 	if x == 1:
 		show_str = "Statistic : %d" % UID_STATISTIC_INDEX
@@ -53,14 +61,23 @@ def message_process_show(x,show_f):
 
 def message_show_cmd_10(len,str,show_f):
 	#print "message_show_cmd_10"
-	global uartc
-	#print str
-	uartc.message_show(str)
+	global uartm
+
+	if str[0:2] == "00":
+		show_str  = uartm.cmdindex + "SEND DATA : Ok "
+	if str[0:2] == "01":
+		show_str  = uartm.cmdindex + "SEND DATA : Fail"
+
+	show_str += " WL_FILTER_STATUS = "+str[3:5]
+	uidlen   = string.atoi(str[6:8],16)
+	show_str += " WL_LEN = %d" % uidlen
+	show_f(show_str,'a')
 
 def message_show_cmd_11(len,str,show_f):
 	#print "message_show_cmd_10"
-	print ' Message : ' + str
-	uartc.message_show(str)
+	global uartm 
+	#print ' Message : ' + str
+	uartm.clicker_message_show(str)
 
 def message_show_cmd_12(len,str,show_f):
 	#print "message_show_cmd_12"
@@ -96,10 +113,15 @@ def message_show_cmd_22(len,str,show_f):
 
 def message_show_cmd_26(len,str,show_f):
 	#print "message_show_cmd_26"
-	show_str = " Pos:%3d Uid:%s " % (string.atoi(str[0:2],16),str[3:14])
+	global uartm
+
+	uid = str[3:14]
+	uid = uid.replace(' ','')
+	show_str  = uartm.cmdindex + 'uPOS:[%3d] ' % string.atoi(uartm.uidpos, 16) 
+	show_str += 'uID:[' + uid + ']'  + " Student Id:" + str[15:] 
+
 	show_f(show_str,'a')
-	show_str = " Student Id :%s " % (str[15:])
-	show_f(show_str,'a')
+
 
 def message_show_cmd_27(len,str,show_f):
 	#print "message_show_cmd_27"
@@ -191,12 +213,18 @@ def message_show_cmd_2f(len,str,show_f):
 def message_show_cmd_30(len,str,show_f):
 	#print "message_show_cmd_30"
 	global UID_LOST_COUNT
+	global uid_init_flg
+	global uartm
+
+ 	if string.atoi(str[0:3], 16) == 1:
+ 		if uid_init_flg == 2:
+ 			uid_init_flg = 0
 
 	message_process_show(string.atoi(str[0:3], 16),show_f)
 
  	UID_LOST_COUNT = (len/5)
 
-	show_str = "lost:"
+	show_str =  uartm.cmdindex + "lost:"
 	show_f(show_str,'a')
 	i = 1
 	j = 0
@@ -206,6 +234,8 @@ def message_show_cmd_30(len,str,show_f):
 		uid = uid.replace(' ','')
 		i = i + 5
 		show_str += "[%3d].%s " % (string.atoi(uid[0:2], 16),uid[2:])
+		if uid_init_flg != 2:
+			uartm.add(uid)
 		j = j + 1
 		if j == 5 :
 			j = 0
@@ -214,6 +244,9 @@ def message_show_cmd_30(len,str,show_f):
 		if i >= len-3 :
 			show_f(show_str,'a')
 			show_str = ""
+	if uid_init_flg == 0:
+		uid_init_flg = 1
+
 	#show_str = "count:%d" % (len/5)
 	#show_f(show_str,'a')
 
@@ -224,6 +257,8 @@ def message_show_cmd_31(len,str,show_f):
 	global UID_OK_COUNT
 	global UID_MAX_COUNT 
 	global UID_COUNT
+	global uid_init_flg
+	global uartm
 
  	UID_OK_COUNT  = (len/5)
  	UID_COUNT    += UID_OK_COUNT
@@ -231,7 +266,7 @@ def message_show_cmd_31(len,str,show_f):
  	if string.atoi(str[0:3], 16) == 1:
  		UID_MAX_COUNT = UID_LOST_COUNT + UID_OK_COUNT
 
-	show_str = "Ok:"
+	show_str =  uartm.cmdindex + "Ok:"
 	show_f(show_str,'a')
 	i = 1
 	j = 0
@@ -241,6 +276,8 @@ def message_show_cmd_31(len,str,show_f):
 		uid = uid.replace(' ','')
 		i = i + 5
 		show_str += "[%3d].%s " % (string.atoi(uid[0:2], 16),uid[2:])
+		if uid_init_flg != 2:
+			uartm.add(uid)
 		j = j + 1
 		if j == 5 :
 			j = 0
@@ -249,7 +286,10 @@ def message_show_cmd_31(len,str,show_f):
 		if i >= len-3 :
 			show_f(show_str,'a')
 			show_str = ""
-	
+
+	if uid_init_flg == 1:
+		uid_init_flg = 2
+
 	show_str = "count:%d" % (len/5)
 	show_f(show_str,'a')
 
@@ -306,92 +346,46 @@ def message_show_cmd_ff(len,str,show_f):
 	show_str = " err code = "+str[3:5]
 	show_f(show_str,'a')
 
-
 def clicker_cmd_show(len,sign,str,show_f):
 	#print "clicker_cmd_show"
-	print (' UID:[' + sign.replace(' ','') + ']' + " DATA:" + str)
+	global uartm
+
+	uid = sign.replace(' ','')
+	is_white_list_uid = uartm.check(uid)
+	if is_white_list_uid == True:
+		show_str = uartm.cmdindex + 'uPOS:[%3d] ' % string.atoi(uartm.uidpos, 16) + 'uID:[' + uid + ']'  + " DATA:" + str 
+		show_f(show_str,'a')
+	else:
+		show_str  =  uartm.cmdindex + "UNKNOW UID" 
+		#show_str += 'uPOS:[%3d] ' % string.atoi(uartm.uidpos, 16) + 'uID:[' + uid + ']'
+		show_f(show_str,'a')
 
 def clicker_cmd_14(len,sign,str,show_f):
 	#print "clicker_cmd_14"
-	show_str = ' UID : ' + sign.replace(' ','') + ' '
-	if str[0:2] == '01':
-		show_str += 'System PowerON'
-	if str[0:2] == '02':
-		show_str += 'System PowerOFF'
-	if str[0:2] == '03':
-		show_str += 'System WakeUp'
-	print show_str
+	global uartm
 
-class UartClicker():
-	def __init__(self):
-		self.analysispath             = ""
-		self.ClickerFunSets           = {
-			"00":clicker_cmd_show,"10":clicker_cmd_show,
-			"11":clicker_cmd_show,"12":clicker_cmd_show,
-			"13":clicker_cmd_show,"14":clicker_cmd_14,
-			"15":clicker_cmd_show,"16":clicker_cmd_show,
-			"17":clicker_cmd_show,"19":clicker_cmd_show,
-			"20":clicker_cmd_show,"21":clicker_cmd_show,
-		}
-
-	def show(self,str,mode):
-		print str
-		f = open(self.analysispath,mode)
-		print >> f, str
-		f.close()
-
-	def message_show1(self,str):
-		show_str = "HEADER = "+str[0:2]
-		self.show(show_str,'a')
-		sign = str[3:14]
-		show_str = "ID     = "+sign
-		self.show(show_str,'a')
-		rfu = str[15:17]
-		show_str = "RFU    = "+rfu
-		self.show(show_str,'a')
-		cmd_type  = str[18:20]
-		show_str = "TYPE   = "+cmd_type
-		self.show(show_str,'a')
-		len_str  = str[21:23]
-		show_str = "LEN    = "+len_str
-		self.show(show_str,'a')
-		len_int  = string.atoi(len_str, 16)
-		#print len_int
-		data     = str[24:24+len_int*3]
-		show_str = "DATA   = "+data
-		self.show(show_str,'a')
-		xor      = str[24+len_int*3:24+len_int*3+2]
-		show_str = "XOR    = "+xor
-		self.show(show_str,'a')
-		end      = str[24+(len_int+1)*3:24+(len_int+1)*3+2]
-		show_str = "END    = "+end
-		self.show(show_str,'a')
-
-		self.ClickerFunSets[cmd_type](len_int,sign,data,self.show)
-
-		show_str = " "
-		self.show(show_str,'a')
-
-	def message_show(self,str):
-		sign     = str[3:14]
-		rfu      = str[15:17]
-		cmd_type = str[18:20]
-		len_str  = str[21:23]
-		len_int  = string.atoi(len_str, 16)
-		data     = str[24:24+len_int*3]
-		xor      = str[24+len_int*3:24+len_int*3+2]
-		end      = str[24+(len_int+1)*3:24+(len_int+1)*3+2]
-
-		self.ClickerFunSets[cmd_type](len_int,sign,data,self.show)
-		show_str = " "
-		self.show(show_str,'a')
+	uid = sign.replace(' ','')
+	is_white_list_uid = uartm.check(uid)
+	if is_white_list_uid == True:
+		show_str = uartm.cmdindex + 'uPOS:[%3d] ' % string.atoi(uartm.uidpos, 16) + 'uID:[' + uid + ']'
+		if str[0:2] == '01':
+			show_str += ' Power : ON'
+		if str[0:2] == '02':
+			show_str += ' Power : OFF'
+		if str[0:2] == '03':
+			show_str += ' Power : WakeUp'
+		show_f(show_str,'a')
 
 # import user module
 class UartRevicer():
 	def __init__(self,file_name):
+		self.uids                    = []
+		self.uid_len                 = 0
+		self.uidpos                  = ""
 		self.analysispath            = ""
 		self.store_switch            = 1
 		self.Count                   = [ 0, 0, 0, 0 ]
+		self.cmdindex                = ""
 		self.ReviceFunSets           = {
 			"10":message_show_cmd_10,"11":message_show_cmd_11,
 			"12":message_show_cmd_12,
@@ -404,6 +398,7 @@ class UartRevicer():
 			"2C":message_show_cmd_2c,"2D":message_show_cmd_22,
 			"2E":message_show_cmd_2e,"2F":message_show_cmd_2f,
 			"30":message_show_cmd_30,"31":message_show_cmd_31,
+			"40":message_show_cmd_22,
 			"41":message_show_cmd_22,"42":message_show_cmd_26,
 			"43":message_show_cmd_43,
 			"A0":message_show_cmd_a0,
@@ -411,11 +406,30 @@ class UartRevicer():
 			"FE":message_show_cmd_fe,
 			"FF":message_show_cmd_ff,
 		}
+		self.ClickerFunSets           = {
+			"00":clicker_cmd_show,"10":clicker_cmd_show,
+			"11":clicker_cmd_show,"12":clicker_cmd_show,
+			"13":clicker_cmd_show,"14":clicker_cmd_14,
+			"15":clicker_cmd_show,"16":clicker_cmd_show,
+			"17":clicker_cmd_show,"19":clicker_cmd_show,
+			"20":clicker_cmd_show,"21":clicker_cmd_show,
+		}
 		f = open(file_name,'rU')
 		self.filelines  = f.readlines()
 		f.close()
 		print "Test file name: " + file_name
 		print "Test file len : ",len(self.filelines)
+
+	def add(self, uid):
+		self.uids.append(uid)
+		self.uid_len += 1
+
+	def check(self,uid):
+		for i in range(0,self.uid_len):
+			if uid == self.uids[i][2:]:
+				self.uidpos =  self.uids[i][0:2]
+				return True
+		return False
 
 	def set_detailed_file(self,str):
 		self.detailed_result_path = str
@@ -449,75 +463,46 @@ class UartRevicer():
 			print >> f, str
 			f.close()
 
-	def message_show1(self,str):
-		show_str = "HEADER = "+str[0:2]
-		self.show(show_str,'a')
-		cmd_type = str[3:5]
-		show_str = "TYPE   = "+cmd_type
-		self.show(show_str,'a')
-		sign_str = str[6:17]
-		show_str = "SIGN   = "+sign_str
-		self.show(show_str,'a')
-		len_str  = str[18:20]
-		show_str = "LEN    = "+len_str
-		self.show(show_str,'a')
-		len_int  = string.atoi(len_str, 16)
-		#print len_int
-		data     = str[21:21+len_int*3]
-		show_str = "DATA   = "+data
-		self.show(show_str,'a')
-		xor      = str[21+len_int*3:21+len_int*3+2]
-		show_str = "XOR    = "+xor
-		self.show(show_str,'a')
-		end      = str[21+(len_int+1)*3:21+(len_int+1)*3+2]
-		show_str = "END    = "+end
-		self.show(show_str,'a')
-
-		self.ReviceFunSets[cmd_type](len_int,data,self.show)
-
-		show_str = " "
-		self.show(show_str,'a')
-
 	def message_show(self,str):
 		global uidshowflg
+		cmdindex = str[0:UID_CMD_START_ADDR]
+		cmddata  = str[UID_CMD_START_ADDR:]
 
-		cmd_type = str[3:5]
-		len_str  = str[18:20]
+		cmd_type = cmddata[3:5]
+		len_str  = cmddata[18:20]
 		len_int  = string.atoi(len_str, 16)
-		data     = str[21:21+len_int*3]
-		xor      = str[21+len_int*3:21+len_int*3+2]
+		data     = cmddata[21:21+len_int*3]
+		xor      = cmddata[21+len_int*3:21+len_int*3+2]
 
 		if cmd_type != "2b":
 			uidshowflg = 0
-
+		self.cmdindex = cmdindex
 		self.ReviceFunSets[cmd_type](len_int,data,self.show)
-		show_str = " "
-		self.show(show_str,'a')
 
-	def store(self):
-		f = open(self.statistical_result_path,'w')
-		#print self.Count
-		f.write('[TEST] send   cmd count = ' + hex(self.get_count(0)) + '\n')
-		f.write('[TEST] revice cmd count = ' + hex(self.get_count(1)) + '\n')
-		f.write('[TEST] ok     cmd count = ' + hex(self.get_count(2)) + '\n')
-		f.write('[TEST] err    cmd count = ' + hex(self.get_count(3)) + '\n')
-		f.close()
+	def clicker_message_show(self,str):
+		sign     = str[3:14]
+		rfu      = str[15:17]
+		cmd_type = str[18:20]
+		len_str  = str[21:23]
+		len_int  = string.atoi(len_str, 16)
+		data     = str[24:24+len_int*3]
+		xor      = str[24+len_int*3:24+len_int*3+2]
+		end      = str[24+(len_int+1)*3:24+(len_int+1)*3+2]
+
+		self.ClickerFunSets[cmd_type](len_int,sign,data,self.show)
 
 	def decode_file(self):
 		for line in self.filelines:
-			self.message_show(line)
+			if line[0+UID_CMD_START_ADDR:2+UID_CMD_START_ADDR] == '5C':
+				self.message_show(line)
 
 if __name__=='__main__':
-	# get uart configuration
-	#num = raw_input("Clicker Num :\r\n>>>")
-	#delayms = raw_input("Clicker delay ms :\r\n>>>")
-
+	# get file path 
 	path = os.path.abspath("./")
 
 	# get the cmd num of the file 'testfile.txt'
 	file_path = path + '\\test_hex_file.txt'
 	uartm = UartRevicer(file_path)
-	uartc = UartClicker()
 	uartm.analysispath = path + '\\analysis_hex_file.txt'
 	show_str =  "Test result analysis:"
 	uartm.show(show_str,'w')
