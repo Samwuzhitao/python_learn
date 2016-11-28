@@ -121,7 +121,7 @@ def message_show_cmd_26(len,str,show_f):
 	show_str += 'uID:[' + uid + ']'  + " Student Id:" + str[15:]
 	show_f(show_str,'a')
 	uartm.add(str[0:2]+uid)
-
+	uartm.uids_data[uid] = []
 
 def message_show_cmd_27(len,str,show_f):
 	#print "message_show_cmd_27"
@@ -236,6 +236,7 @@ def message_show_cmd_30(len,str,show_f):
 		show_str += "[%3d].%s " % (string.atoi(uid[0:2], 16),uid[2:])
 		if uid_init_flg != 2:
 			uartm.add(uid)
+			uartm.uids_data[uid[2:]] = []
 		j = j + 1
 		if j == 5 :
 			j = 0
@@ -278,6 +279,7 @@ def message_show_cmd_31(len,str,show_f):
 		show_str += "[%3d].%s " % (string.atoi(uid[0:2], 16),uid[2:])
 		if uid_init_flg != 2:
 			uartm.add(uid)
+			uartm.uids_data[uid[2:]] = []
 		j = j + 1
 		if j == 5 :
 			j = 0
@@ -354,6 +356,8 @@ def clicker_cmd_show(len,sign,str,show_f):
 	is_white_list_uid = uartm.check(uid)
 	if is_white_list_uid == True:
 		show_str = uartm.cmdindex + 'uPOS:[%3d] ' % string.atoi(uartm.uidpos, 16) + 'uID:[' + uid + ']'  + " DATA:" + str
+		uartm.uids_data[uid].append(show_str)
+		#uartm.uids_data[uid] = '  ' + show_str
 		show_f(show_str,'a')
 	else:
 		show_str  =  uartm.cmdindex + "UNKNOW UID : " + uid
@@ -380,6 +384,7 @@ def clicker_cmd_14(len,sign,str,show_f):
 class UartRevicer():
 	def __init__(self,file_name):
 		self.uids                    = []
+		self.uids_data               = {}
 		self.uid_len                 = 0
 		self.uidpos                  = ""
 		self.analysispath            = ""
@@ -507,3 +512,18 @@ if __name__=='__main__':
 	show_str =  "Test result analysis:"
 	uartm.show(show_str,'w')
 	uartm.decode_file()
+
+	show_str =  "THE LAST PUSH DATA:"
+	uartm.show(show_str,'a')
+
+	index = 1
+	for key in uartm.uids_data:
+		show_str  = " <%3d> uID: " % index + key
+		show_str += ", Count : %3d" % len(uartm.uids_data[key]) + ", List : "
+		index = index + 1
+		uartm.show(show_str,'a')
+		itemindex = 1
+		for item in uartm.uids_data[key]:
+			show_str =  "\t[%3d]" % itemindex + item
+			itemindex = itemindex + 1
+			uartm.show(show_str,'a')
