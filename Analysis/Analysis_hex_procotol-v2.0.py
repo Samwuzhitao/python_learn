@@ -45,7 +45,7 @@ def message_process_show(x,show_f):
 
 	if x == 1:
 		show_str = "Statistic : %d" % UID_STATISTIC_INDEX
-		show_f(show_str,'a')	
+		show_f(show_str,'a')
 		show_str = "First Statistic:"
 		show_f(show_str,'a')
 		UID_STATISTIC_INDEX = UID_STATISTIC_INDEX + 1
@@ -75,7 +75,7 @@ def message_show_cmd_10(len,str,show_f):
 
 def message_show_cmd_11(len,str,show_f):
 	#print "message_show_cmd_10"
-	global uartm 
+	global uartm
 	#print ' Message : ' + str
 	uartm.clicker_message_show(str)
 
@@ -117,10 +117,10 @@ def message_show_cmd_26(len,str,show_f):
 
 	uid = str[3:14]
 	uid = uid.replace(' ','')
-	show_str  = uartm.cmdindex + 'uPOS:[%3d] ' % string.atoi(uartm.uidpos, 16) 
-	show_str += 'uID:[' + uid + ']'  + " Student Id:" + str[15:] 
-
+	show_str  = uartm.cmdindex + 'uPOS:[%3d] ' % string.atoi(str[0:2], 16)
+	show_str += 'uID:[' + uid + ']'  + " Student Id:" + str[15:]
 	show_f(show_str,'a')
+	uartm.add(str[0:2]+uid)
 
 
 def message_show_cmd_27(len,str,show_f):
@@ -253,9 +253,9 @@ def message_show_cmd_30(len,str,show_f):
 def message_show_cmd_31(len,str,show_f):
 	#print "message_show_cmd_31"
 	#message_process_show(string.atoi(str[0:3], 16),show_f)
-	global UID_LOST_COUNT 
+	global UID_LOST_COUNT
 	global UID_OK_COUNT
-	global UID_MAX_COUNT 
+	global UID_MAX_COUNT
 	global UID_COUNT
 	global uid_init_flg
 	global uartm
@@ -353,10 +353,10 @@ def clicker_cmd_show(len,sign,str,show_f):
 	uid = sign.replace(' ','')
 	is_white_list_uid = uartm.check(uid)
 	if is_white_list_uid == True:
-		show_str = uartm.cmdindex + 'uPOS:[%3d] ' % string.atoi(uartm.uidpos, 16) + 'uID:[' + uid + ']'  + " DATA:" + str 
+		show_str = uartm.cmdindex + 'uPOS:[%3d] ' % string.atoi(uartm.uidpos, 16) + 'uID:[' + uid + ']'  + " DATA:" + str
 		show_f(show_str,'a')
 	else:
-		show_str  =  uartm.cmdindex + "UNKNOW UID" 
+		show_str  =  uartm.cmdindex + "UNKNOW UID : " + uid
 		#show_str += 'uPOS:[%3d] ' % string.atoi(uartm.uidpos, 16) + 'uID:[' + uid + ']'
 		show_f(show_str,'a')
 
@@ -497,7 +497,7 @@ class UartRevicer():
 				self.message_show(line)
 
 if __name__=='__main__':
-	# get file path 
+	# get file path
 	path = os.path.abspath("./")
 
 	# get the cmd num of the file 'testfile.txt'
