@@ -6,6 +6,7 @@ uart_message for serial ports.
 """
 import os
 import string
+import Alignment
 
 uid_init_flg        = 0
 uidshowindex        = 0
@@ -302,7 +303,9 @@ def message_show_cmd_31(len,str,show_f):
 
 def message_show_cmd_43(len,str,show_f):
 	#print "message_show_cmd_30"
-	show_str = "online uid:"
+	global uartm
+
+	show_str  =  uartm.cmdindex + " Online uID:"
 	show_f(show_str,'a')
 	i = 0
 	j = 0
@@ -502,13 +505,26 @@ class UartRevicer():
 				self.message_show(line)
 
 if __name__=='__main__':
-	# get file path
+	# 1. Alignment file
+	# get file path 
+	path = os.path.abspath("./")
+
+	# get the cmd num of the file 'testfile.txt'
+	file_path = path + '\\DataFile.txt'
+	uartd = Alignment.UartDecode(file_path)
+
+	uartd.analysispath = path + '\\AlignmentDataFile.txt'
+	show_str =  "Test result analysis:"
+	uartd.show(show_str,'w')
+	uartd.decode_file()
+
+	# 2.Analysys file
 	path = os.path.abspath("./")
 
 	# get the cmd num of the file 'testfile.txt'
 	file_path = path + '\\AlignmentDataFile.txt'
 	uartm = UartRevicer(file_path)
-	uartm.analysispath = path + '\\AnalysisHexResult.txt'
+	uartm.analysispath = path + '\\DataFileAnalysisResult.txt'
 	show_str =  "Test result analysis:"
 	uartm.show(show_str,'w')
 	uartm.decode_file()
