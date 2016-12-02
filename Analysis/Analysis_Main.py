@@ -506,15 +506,13 @@ class UartRevicer():
 
 if __name__=='__main__':
 	# 1. Alignment file
-	# get file path 
 	path = os.path.abspath("./")
 
 	# get the cmd num of the file 'testfile.txt'
-	file_path = path + '\\DataFile.txt'
-	uartd = Alignment.UartDecode(file_path)
-
+	file_path          = path + '\\DataFile.txt'
+	uartd              = Alignment.UartDecode(file_path)
 	uartd.analysispath = path + '\\AlignmentDataFile.txt'
-	show_str =  "Test result analysis:"
+	show_str           =  "Test result analysis:"
 	uartd.show(show_str,'w')
 	uartd.decode_file()
 
@@ -522,13 +520,16 @@ if __name__=='__main__':
 	path = os.path.abspath("./")
 
 	# get the cmd num of the file 'testfile.txt'
-	file_path = path + '\\AlignmentDataFile.txt'
-	uartm = UartRevicer(file_path)
+	file_path          = path + '\\AlignmentDataFile.txt'
+	uartm              = UartRevicer(file_path)
 	uartm.analysispath = path + '\\DataFileAnalysisResult.txt'
-	show_str =  "Test result analysis:"
+	show_str           =  "Test result analysis:"
 	uartm.show(show_str,'w')
 	uartm.decode_file()
 
+	# 3.Analysys Clicker update data
+	show_str =  ""
+	uartm.show(show_str,'a')
 	show_str =  "THE LAST PUSH DATA:"
 	uartm.show(show_str,'a')
 
