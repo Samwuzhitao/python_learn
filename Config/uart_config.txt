@@ -1,12 +1,12 @@
 [setting]
 
-Port: 7
-baudrate: 115200
+Port: 5
+baudrate: 1152000
 timeout: 120
 send_delayms: 200
 file_store_switch:1
 
 [cmd_file_setting]
 
-cmd_file_name: clicker_white_list_test_cmd.txt
-test_max:20
+cmd_file_name: 5.01 other_cmd_test.txt
+test_max:1
