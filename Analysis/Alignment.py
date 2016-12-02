@@ -57,10 +57,10 @@ if __name__=='__main__':
 	path = os.path.abspath("./")
 
 	# get the cmd num of the file 'testfile.txt'
-	file_path = path + '\\test_file.txt'
+	file_path = path + '\\TestDataFile.txt'
 	uartd = UartDecode(file_path)
 
-	uartd.analysispath = path + '\\test_hex_file.txt'
+	uartd.analysispath = path + '\\AlignmentDataFile.txt'
 	show_str =  "Test result analysis:"
 	uartd.show(show_str,'w')
 	uartd.decode_file()

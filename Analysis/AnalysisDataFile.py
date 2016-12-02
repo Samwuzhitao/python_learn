@@ -506,9 +506,9 @@ if __name__=='__main__':
 	path = os.path.abspath("./")
 
 	# get the cmd num of the file 'testfile.txt'
-	file_path = path + '\\test_hex_file.txt'
+	file_path = path + '\\AlignmentDataFile.txt'
 	uartm = UartRevicer(file_path)
-	uartm.analysispath = path + '\\analysis_hex_file.txt'
+	uartm.analysispath = path + '\\AnalysisHexResult.txt'
 	show_str =  "Test result analysis:"
 	uartm.show(show_str,'w')
 	uartm.decode_file()
