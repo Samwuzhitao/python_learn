@@ -118,11 +118,11 @@ if __name__=='__main__':
 	# show test file path
 
 	cmd_path                   = path + '\\CmdFile\\'
-	uid_table_path             =  path + '\\Config\\' + 'white_list_init_table.txt'
+	uid_table_path             = path + '\\Config\\' + 'white_list_init_table.txt'
 	path                       = path + '\\OutPut\\'
 	uart_cmd_file              = cmd_path + uart_cmd_file_name
-	result_file                = uart_cmd_file_name.strip('txt')
-	uart_test_temp_result_file = path + result_file[5:] + '-' + now + '.txt'
+	result_file                = uart_cmd_file_name.strip('.txt')
+	uart_test_temp_result_file = path + result_file[5:] + 't-' + now + '.txt'
 	uart_test_result_file      = path + 'clicker_test_result-' + now +'.txt'
 
 	uartm.set_cmd_path(uart_cmd_file)

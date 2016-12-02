@@ -38,7 +38,8 @@ class WhiteList():
 		self.cmds   = f.readlines()
 		f.close()
 		self.cmdlen = len(self.cmds)
-		sel = raw_input("Please select White List : 0,1,2 \r\n>>>")
+		#sel = raw_input("Please select White List : 0,1,2 \r\n>>>")
+		sel = ''
 		choice = ''
 		for char in sel:
 				if char != ',':

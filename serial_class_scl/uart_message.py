@@ -6,6 +6,7 @@ uart_message for serial ports.
 """
 import string
 import uart_whitelist
+import time
 
 uidshowindex          = 0
 uidshowflg            = 0
@@ -14,19 +15,23 @@ uid_table_first_write = 0
 UID_SHOW_COL_NUM      = 5
 
 def message_status_check(str):
+	ISOTIMEFORMAT = '[ %Y-%m-%d %H:%M:%S ]'
+	now = time.strftime( ISOTIMEFORMAT, time.localtime( time.time() ) )
 	status = string.atoi(str, 10)
 	if status == 0:
-		str1 = " Successed"
+		str1 = now + " OK"
 	else:
-		str1 = " Fail"
+		str1 = now + " FAIL"
 	return str1
 
 def message_status_check1(str):
+	ISOTIMEFORMAT = '[ %Y-%m-%d %H:%M:%S ]'
+	now = time.strftime( ISOTIMEFORMAT, time.localtime( time.time() ) )
 	status = string.atoi(str, 10)
 	if status == 0:
-		str1 = " Ok"
+		str1 = now + " OK"
 	else:
-		str1 = " Busy"
+		str1 = now + " BUSY"
 	return str1
 
 def message_process_show(x,show_f):
@@ -46,43 +51,37 @@ def message_process_show(x,show_f):
 def message_show_cmd_10(len,str,show_f):
 	#print "message_show_cmd_10"
 	show_f(message_status_check1(str[0:2]),'a')
-	show_str = " whitelist: state = "+str[3:5]
+	show_str = " WL_FILTER_STATUS = "+str[3:5]
 	uidlen   = string.atoi(str[6:8],16)
-	show_str += " len = %d" % uidlen
+	show_str += " WL_LEN = %d" % uidlen
 	show_f(show_str,'a')
 	#print str
 
 def message_show_cmd_11(len,str,show_f):
 	#print "message_show_cmd_10"
-	print ' Message : ' + str
+	ISOTIMEFORMAT = '[ %Y-%m-%d %H:%M:%S ]'
+	now = time.strftime( ISOTIMEFORMAT, time.localtime( time.time() ) )
+	show_str = now + ' Message : ' + str
+	show_f(show_str,'a')
 	#uartc.message_show(str)
 
 def message_show_cmd_12(len,str,show_f):
 	#print "message_show_cmd_12"
 	show_f(message_status_check(str[0:2]),'a')
-	show_str = " whitelist: state = "+str[3:5]
+	show_str = " WL_FILTER_STATUS = "+str[3:5]
 	uidlen   = string.atoi(str[6:8],16)
-	show_str += " len = %d" % uidlen
+	show_str += " WL_LEN = %d" % uidlen
 	show_f(show_str,'a')
 
 def message_show_cmd_20(len,str,show_f):
 	#print "message_show_cmd_20"
+	ISOTIMEFORMAT = '[ %Y-%m-%d %H:%M:%S ]'
+	now = time.strftime( ISOTIMEFORMAT, time.localtime( time.time() ) )
 	uidlen   = string.atoi(str[0:2],16)
-	show_str = " ok = %d" % uidlen
+	show_str = now + " WL_OK_COUNT = %d" % uidlen
 	uidlen   = string.atoi(str[27:29],16)
-	show_str += " len = %d" % uidlen
-	show_f(show_str,'a')
-	show_str = " detail state = "+str[3:26]
-	show_f(show_str,'a')
-
-def message_show_cmd_21(len,str,show_f):
-	#print "message_show_cmd_21"
-	uidlen   = string.atoi(str[0:2],16)
-	show_str = " ok = %d" % uidlen
-	uidlen   = string.atoi(str[27:29],16)
-	show_str += " len = %d" % uidlen
-	show_f(show_str,'a')
-	show_str = " detail state = "+str[3:26]
+	show_str += " WL_LEN = %d" % uidlen
+	show_str += " WL_DETAIL = "+str[3:26]
 	show_f(show_str,'a')
 
 def message_show_cmd_22(len,str,show_f):
@@ -91,22 +90,13 @@ def message_show_cmd_22(len,str,show_f):
 
 def message_show_cmd_26(len,str,show_f):
 	#print "message_show_cmd_26"
-	show_str = " Pos:%3d Uid:%s " % (string.atoi(str[0:2],16),str[3:14])
+	ISOTIMEFORMAT = '[ %Y-%m-%d %H:%M:%S ]'
+	now = time.strftime( ISOTIMEFORMAT, time.localtime( time.time() ) )
+	uid = str[3:14]
+	uid = uid.replace(' ','')
+	show_str  = now + ' uPOS:[%3d] ' % string.atoi(str[0:2], 16)
+	show_str += 'uID:[' + uid + ']'  + " Student ID:" + str[15:]
 	show_f(show_str,'a')
-	show_str = " Student Id :%s " % (str[15:])
-	show_f(show_str,'a')
-
-def message_show_cmd_27(len,str,show_f):
-	#print "message_show_cmd_27"
-	show_f(message_status_check(str[0:2]),'a')
-
-def message_show_cmd_28(len,str,show_f):
-	#print "message_show_cmd_28"
-	show_f(message_status_check(str[0:2]),'a')
-
-def message_show_cmd_2a(len,str,show_f):
-	#print "message_show_cmd_2a"
-	show_f(message_status_check(str[0:2]),'a')
 
 def message_show_cmd_2b(len,str,show_f):
 	#print "message_show_cmd_2b"
@@ -118,7 +108,7 @@ def message_show_cmd_2b(len,str,show_f):
 
 	store_uid_switch = 1
 	uidlen   = string.atoi(str[0:2],16)
-	show_str = " uid sum : %d " % uidlen
+	show_str = " uID SUM : %d " % uidlen
 	show_f(show_str,'a')
 
 	if uidshowflg == 0:
@@ -239,7 +229,9 @@ def message_show_cmd_31(len,str,show_f):
 
 def message_show_cmd_43(len,str,show_f):
 	#print "message_show_cmd_30"
-	show_str = "online uid:"
+	ISOTIMEFORMAT = '[ %Y-%m-%d %H:%M:%S ]'
+	now = time.strftime( ISOTIMEFORMAT, time.localtime( time.time() ) )
+	show_str = now + " Online uID:"
 	show_f(show_str,'a')
 	i = 0
 	j = 0
@@ -260,27 +252,8 @@ def message_show_cmd_43(len,str,show_f):
 	show_str = "count:%d" % (len/5)
 	show_f(show_str,'a')
 
-def message_show_cmd_a0(len,str,show_f):
-	#print "message_show_cmd_a0"
-	show_f(message_status_check(str[0:2]),'a')
-	#show_str = " err code = "+str[3:5]
-	#show_f(show_str,'a')
-	#print str
-
 def message_show_cmd_fd(len,str,show_f):
 	#print "message_show_cmd_fd"
-	show_f(message_status_check(str[0:2]),'a')
-	show_str = " err code = "+str[3:5]
-	show_f(show_str,'a')
-
-def message_show_cmd_fe(len,str,show_f):
-	#print "message_show_cmd_fe"
-	show_f(message_status_check(str[0:2]),'a')
-	show_str = " err code = "+str[3:5]
-	show_f(show_str,'a')
-
-def message_show_cmd_ff(len,str,show_f):
-	#print "message_show_cmd_ff"
 	show_f(message_status_check(str[0:2]),'a')
 	show_str = " err code = "+str[3:5]
 	show_f(show_str,'a')
@@ -297,21 +270,21 @@ class UartM():
 		self.ReviceFunSets           = {
 			"10":message_show_cmd_10,"11":message_show_cmd_11,
 			"12":message_show_cmd_12,
-			"20":message_show_cmd_20,"21":message_show_cmd_21,
+			"20":message_show_cmd_20,"21":message_show_cmd_20,
 			"22":message_show_cmd_22,"23":message_show_cmd_22,
 			"24":message_show_cmd_22,"25":message_show_cmd_22,
-			"26":message_show_cmd_26,"27":message_show_cmd_27,
-			"28":message_show_cmd_28,"29":message_show_cmd_26,
-			"2a":message_show_cmd_2a,"2b":message_show_cmd_2b,
+			"26":message_show_cmd_26,"27":message_show_cmd_22,
+			"28":message_show_cmd_22,"29":message_show_cmd_26,
+			"2a":message_show_cmd_22,"2b":message_show_cmd_2b,
 			"2c":message_show_cmd_2c,"2d":message_show_cmd_22,
 			"2e":message_show_cmd_2e,"2f":message_show_cmd_2f,
 			"30":message_show_cmd_30,"31":message_show_cmd_31,
 			"41":message_show_cmd_22,"42":message_show_cmd_26,
 			"43":message_show_cmd_43,
-			"a0":message_show_cmd_a0,
+			"a0":message_show_cmd_22,
 			"fd":message_show_cmd_fd,
-			"fe":message_show_cmd_fe,
-			"ff":message_show_cmd_ff,
+			"fe":message_show_cmd_fd,
+			"ff":message_show_cmd_fd,
 		}
 
 	def set_detailed_file(self,str):
@@ -354,7 +327,7 @@ class UartM():
 		if store_uid_switch == 1:
 			if uid_table_first_write == 0:
 				f = open(self.uid_table_path,'w')
-				print ' Create file --> ' + self.uid_table_path
+				#print ' Create file --> ' + self.uid_table_path
 				uid_table_first_write = 1
 			else:
 				f = open(self.uid_table_path,'a')
