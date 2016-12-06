@@ -45,6 +45,7 @@ class UartR():
 
 	def str_add(self,char):
 		self.str = self.str + ' ' + char
+		#print self.str 
 
 	def str_clear(self):
 		self.str = ""
@@ -66,17 +67,21 @@ class UartR():
 			if char == "5c":
 				self.str_add(char)
 				self.set_status(1)
+				self.set_cnt(4)	
 			return
 
-		# revice cmd type
+		# revice stdid type
 		if uart_current_status == 1:
 			self.str_add(char)
 			self.xor_cal(x)
-			self.set_status(2)
-			self.set_cnt(4)
+			self.cnt_dec()
+			uart_current_cnt = self.get_cnt()
+			if uart_current_cnt == 0:
+				self.set_status(2)
+				self.set_cnt(4)
 			return
 
-		# rvice sign id
+		# revice srcid id
 		if uart_current_status == 2:
 			self.str_add(char)
 			self.xor_cal(x)
@@ -86,30 +91,71 @@ class UartR():
 				self.set_status(3)
 			return
 
-		# revice message data len
+		#revice seqnum
 		if uart_current_status == 3:
 			self.str_add(char)
 			self.xor_cal(x)
-			if ord(x) == 0:
-				self.set_status(5)
-				return
 			self.set_status(4)
+			return
+
+		#revice packNum
+		if uart_current_status == 4:
+			self.str_add(char)
+			self.xor_cal(x)
+			self.set_status(5)
+			return
+
+		#revice packtype
+		if uart_current_status == 5:
+			self.str_add(char)
+			self.xor_cal(x)
+			self.set_status(6)
+			return
+
+		#revice cmd
+		if uart_current_status == 6:
+			self.str_add(char)
+			self.xor_cal(x)
+			self.set_status(7)
+			self.set_cnt(2)
+			#print "cmd : " + char 
+			return
+
+		#revice reviced
+		if uart_current_status == 7:
+			self.str_add(char)
+			self.xor_cal(x)
+			self.cnt_dec()
+			uart_current_cnt = self.get_cnt()
+			#print uart_current_cnt
+			if uart_current_cnt == 0:
+				self.set_status(8)
+			return
+
+		# revice message data len
+		if uart_current_status == 8:
+			self.str_add(char)
+			self.xor_cal(x)
+			if ord(x) == 0:
+				self.set_status(10)
+				return
+			self.set_status(9)
 			self.set_cnt(ord(x))
 			#print "message len = ",ord(x)
 			return
 
 		# revoce data
-		if uart_current_status == 4:
+		if uart_current_status == 9:
 			self.str_add(char)
 			self.xor_cal(x)
 			self.cnt_dec()
 			uart_current_cnt = self.get_cnt()
 			if uart_current_cnt == 0:
-				self.set_status(5)
+				self.set_status(10)
 			return
 
 		# revoce xor
-		if uart_current_status == 5:
+		if uart_current_status == 10:
 			uart_cal_oxr = self.get_xor()
 			uart_cal_oxr = "%02x" % uart_cal_oxr
 			#print "uart_revice_oxr =",char
@@ -119,7 +165,7 @@ class UartR():
 			count_f(1)
 			if uart_oxr_cmp == 0:
 				self.str_add(char)
-				self.set_status(6)
+				self.set_status(11)
 				self.set_xor(0)
 				count_f(2)
 				return
@@ -132,7 +178,7 @@ class UartR():
 				return
 
 		# revice data end
-		if uart_current_status == 6:
+		if uart_current_status == 11:
 			if char == "ca":
 				self.set_status(100)
 				self.str_add(char)

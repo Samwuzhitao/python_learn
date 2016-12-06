@@ -7,12 +7,25 @@ uart_message for serial ports.
 import string
 import uart_whitelist
 import time
+from time import sleep
 
 uidshowindex          = 0
 uidshowflg            = 0
 store_uid_switch      = 0
 uid_table_first_write = 0
 UID_SHOW_COL_NUM      = 5
+MESSAGE_HEADER_LEN    = 1
+MESSAGE_DSTID_LEN     = 4
+MESSAGE_SRCID_LEN     = 4
+MESSAGE_PACKNUM_LEN   = 1
+MESSAGE_SEQNUM_LEN    = 1
+MESSAGE_PACKTYPE_LEN  = 1
+MEAAAGE_CMD_LEN       = 1
+MESSAGE_REVICED_LEN   = 2
+MESSAGE_LEN_LEN       = 1
+MESSAGE_XOR_LEN       = 1
+MESSAGE_END_LEN       = 1
+
 
 def message_status_check(str):
 	ISOTIMEFORMAT = '[ %Y-%m-%d %H:%M:%S ]'
@@ -137,7 +150,7 @@ def message_show_cmd_2b(len,str,show_f):
 	store_uid_switch = 0
 	uid_table_first_write = 0
 
-def message_show_cmd_2c(len,str,show_f):
+def message_show_decie_info(len,str,show_f):
 	#print "message_show_cmd_2c"
 	uid       = str[0:11]
 	show_str  = " ID  = "+uid.replace(' ','')
@@ -269,19 +282,7 @@ class UartM():
 		self.Count                   = [ 0, 0, 0, 0 ]
 		self.ReviceFunSets           = {
 			"10":message_show_cmd_10,"11":message_show_cmd_11,
-			"12":message_show_cmd_12,
-			"20":message_show_cmd_20,"21":message_show_cmd_20,
-			"22":message_show_cmd_22,"23":message_show_cmd_22,
-			"24":message_show_cmd_22,"25":message_show_cmd_22,
-			"26":message_show_cmd_26,"27":message_show_cmd_22,
-			"28":message_show_cmd_22,"29":message_show_cmd_26,
-			"2a":message_show_cmd_22,"2b":message_show_cmd_2b,
-			"2c":message_show_cmd_2c,"2d":message_show_cmd_22,
-			"2e":message_show_cmd_2e,"2f":message_show_cmd_2f,
-			"30":message_show_cmd_30,"31":message_show_cmd_31,
-			"41":message_show_cmd_22,"42":message_show_cmd_26,
-			"43":message_show_cmd_43,
-			"a0":message_show_cmd_22,
+			"12":message_show_cmd_12,"13":message_show_decie_info,
 			"fd":message_show_cmd_fd,
 			"fe":message_show_cmd_fd,
 			"ff":message_show_cmd_fd,
@@ -327,7 +328,6 @@ class UartM():
 		if store_uid_switch == 1:
 			if uid_table_first_write == 0:
 				f = open(self.uid_table_path,'w')
-				#print ' Create file --> ' + self.uid_table_path
 				uid_table_first_write = 1
 			else:
 				f = open(self.uid_table_path,'a')
@@ -335,50 +335,97 @@ class UartM():
 			f.close()
 		print str
 
-	def message_show1(self,str):
-		show_str = "HEADER = "+str[1:3]
-		self.show(show_str,'a')
-		cmd_type = str[4:6]
-		show_str = "TYPE   = "+cmd_type
-		self.show(show_str,'a')
-		sign_str = str[7:18]
-		show_str = "SIGN   = "+sign_str
-		self.show(show_str,'a')
-		len_str  = str[19:21]
-		show_str = "LEN    = "+len_str
-		self.show(show_str,'a')
-		len_int  = string.atoi(len_str, 16)
-		#print len_int
-		data     = str[22:22+len_int*3]
-		show_str = "DATA   = "+data
-		self.show(show_str,'a')
-		xor      = str[22+len_int*3:22+len_int*3+2]
-		show_str = "XOR    = "+xor
-		self.show(show_str,'a')
-		end      = str[22+(len_int+1)*3:22+(len_int+1)*3+2]
-		show_str = "END    = "+end
-		self.show(show_str,'a')
-
-		self.ReviceFunSets[cmd_type](len_int,data,self.show)
-
-		show_str = " "
-		self.show(show_str,'a')
-
 	def message_show(self,str):
-		global uidshowflg
+		#print str
+		# header
+		startaddr = 1
+		endaddr   = MESSAGE_HEADER_LEN*3
+		#show_str = "HEAD     = "+str[startaddr:endaddr]
+		#self.show(show_str,'a')
 
-		cmd_type = str[4:6]
-		len_str  = str[19:21]
-		len_int  = string.atoi(len_str, 16)
-		data     = str[22:22+len_int*3]
-		xor      = str[22+len_int*3:22+len_int*3+2]
+		# dstid
+		startaddr = endaddr + 1
+		endaddr   = endaddr + MESSAGE_DSTID_LEN*3
+		dstid     = str[startaddr:endaddr]
+		#show_str = "DISID    = "+dstid
+		#self.show(show_str,'a')
 
-		if cmd_type != "2b":
-			uidshowflg = 0
+		#srcid
+		startaddr = endaddr + 1
+		endaddr   = endaddr + MESSAGE_SRCID_LEN*3
+		srcid     = str[startaddr:endaddr]
+		#show_str = "SRCID    = "+srcid
+		#self.show(show_str,'a')
 
-		self.ReviceFunSets[cmd_type](len_int,data,self.show)
-		show_str = " "
-		self.show(show_str,'a')
+		#packnum MESSAGE_PACKNUM_LEN   = 1
+		startaddr = endaddr + 1
+		endaddr   = endaddr + MESSAGE_PACKNUM_LEN*3
+		packnum   = str[startaddr:endaddr]
+		#show_str = "PACKNUM  = "+packnum
+		#self.show(show_str,'a')
+
+		#seqnum MESSAGE_SEQNUM_LEN    = 1
+		startaddr = endaddr + 1
+		endaddr   = endaddr + MESSAGE_SEQNUM_LEN*3
+		seqnum    = str[startaddr:endaddr]
+		#show_str = "PACKNUM  = "+seqnum
+		#self.show(show_str,'a')
+
+		#seqnum MESSAGE_PACKTYPE_LEN    = 1
+		startaddr = endaddr + 1
+		endaddr   = endaddr + MESSAGE_PACKTYPE_LEN*3
+		packtype  = str[startaddr:endaddr]
+		#show_str = "PACKTYPE = "+packtype
+		#self.show(show_str,'a')
+
+		#seqnum MEAAAGE_CMD_LEN       = 1
+		startaddr = endaddr + 1
+		endaddr   = endaddr + MEAAAGE_CMD_LEN*3
+		cmd       = str[startaddr:endaddr]
+		#show_str = "CMD      = "+cmd
+		#self.show(show_str,'a')
+
+		#seqnum MESSAGE_REVICED_LEN   = 2
+		startaddr = endaddr + 1
+		endaddr   = endaddr + MESSAGE_REVICED_LEN*3
+		reviced   = str[startaddr:endaddr]
+		#show_str = "REVICED  = "+reviced
+		#self.show(show_str,'a')
+
+		#seqnum MESSAGE_LEN_LEN       = 1
+		startaddr = endaddr + 1
+		endaddr   = endaddr + MESSAGE_LEN_LEN*3
+		len_str   = str[startaddr:endaddr]
+		#show_str = "LEN      = "+len_str
+		#self.show(show_str,'a')
+		len_int   = string.atoi(len_str, 16)
+		#print len_int
+
+		# data 
+		startaddr = endaddr + 1
+		endaddr   = endaddr + len_int*3
+		data      = str[startaddr:endaddr]
+		#show_str = "DATA     = "+data
+		#self.show(show_str,'a')
+
+		# xor MESSAGE_XOR_LEN       = 1
+		startaddr = endaddr + 1
+		endaddr   = endaddr + MESSAGE_XOR_LEN*3
+		xor       =  str[startaddr:endaddr]
+		#show_str = "XOR      = "+xor
+		#self.show(show_str,'a')
+
+		# end MESSAGE_END_LEN       = 1
+		startaddr = endaddr + 1
+		endaddr   = endaddr + MESSAGE_END_LEN*3
+		end       = str[startaddr:endaddr]
+		#show_str = "END      = "+end
+		#self.show(show_str,'a')
+
+		self.ReviceFunSets[cmd](len_int,data,self.show)
+
+		#show_str = " "
+		#self.show(show_str,'a')
 
 	def store(self):
 		f = open(self.statistical_result_path,'w')
