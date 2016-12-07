@@ -28,7 +28,7 @@ MESSAGE_XOR_LEN       = 1
 MESSAGE_END_LEN       = 1
 
 def message_status_check(str):
-	ISOTIMEFORMAT = '[ %Y-%m-%d %H:%M:%S ]'
+	ISOTIMEFORMAT = ' [ %Y-%m-%d %H:%M:%S ]'
 	now = time.strftime( ISOTIMEFORMAT, time.localtime( time.time() ) )
 	status = string.atoi(str, 10)
 	if status == 0:
@@ -38,7 +38,7 @@ def message_status_check(str):
 	return str1
 
 def message_status_check1(str):
-	ISOTIMEFORMAT = '[ %Y-%m-%d %H:%M:%S ]'
+	ISOTIMEFORMAT = ' [ %Y-%m-%d %H:%M:%S ]'
 	now = time.strftime( ISOTIMEFORMAT, time.localtime( time.time() ) )
 	status = string.atoi(str, 10)
 	if status == 0:
@@ -72,7 +72,7 @@ def message_show_cmd_10(packnum,seqnum,acktype,len,str,show_f):
 
 def message_show_cmd_11(packnum,seqnum,acktype,len,str,show_f):
 	#print "message_show_cmd_10"
-	ISOTIMEFORMAT = '[ %Y-%m-%d %H:%M:%S ]'
+	ISOTIMEFORMAT = ' [ %Y-%m-%d %H:%M:%S ]'
 	now = time.strftime( ISOTIMEFORMAT, time.localtime( time.time() ) )
 	show_str = now + ' Message : ' + str
 	show_f(show_str,'a')
@@ -85,7 +85,7 @@ def message_show_cmd_22(packnum,seqnum,acktype,len,str,show_f):
 
 def message_show_cmd_26(packnum,seqnum,acktype,len,str,show_f):
 	#print "message_show_cmd_26"
-	ISOTIMEFORMAT = '[ %Y-%m-%d %H:%M:%S ]'
+	ISOTIMEFORMAT = ' [ %Y-%m-%d %H:%M:%S ]'
 	now = time.strftime( ISOTIMEFORMAT, time.localtime( time.time() ) )
 	uid = str[3:14]
 	uid = uid.replace(' ','')
@@ -105,7 +105,7 @@ def message_decode_uid_cmd_result(packnum,seqnum,acktype,len,str,show_f):
 	cmdtype = str[0:2]
 	str = str[3:]
 
-	ISOTIMEFORMAT = '[ %Y-%m-%d %H:%M:%S ]'
+	ISOTIMEFORMAT = ' [ %Y-%m-%d %H:%M:%S ]'
 	now = time.strftime( ISOTIMEFORMAT, time.localtime( time.time() ) )
 
 	if (cmdtype == "04"):
@@ -164,7 +164,7 @@ def message_decode_uid_cmd_result(packnum,seqnum,acktype,len,str,show_f):
 
 def message_decode_systick_cmd_result(packnum,seqnum,acktype,len,str,show_f):
 	#print "message_show_cmd_2c"
-	ISOTIMEFORMAT = '[ %Y-%m-%d %H:%M:%S ]'
+	ISOTIMEFORMAT = ' [ %Y-%m-%d %H:%M:%S ]'
 	now = time.strftime( ISOTIMEFORMAT, time.localtime( time.time() ) )
 	show_str  = now
 	if acktype == 0x01:
@@ -263,7 +263,7 @@ def message_show_cmd_31(packnum,seqnum,acktype,len,str,show_f):
 
 def message_show_cmd_43(packnum,seqnum,acktype,len,str,show_f):
 	#print "message_show_cmd_30"
-	ISOTIMEFORMAT = '[ %Y-%m-%d %H:%M:%S ]'
+	ISOTIMEFORMAT = ' [ %Y-%m-%d %H:%M:%S ]'
 	now = time.strftime( ISOTIMEFORMAT, time.localtime( time.time() ) )
 	show_str = now + " Online uID:"
 	show_f(show_str,'a')
