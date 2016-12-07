@@ -10,7 +10,8 @@ import time
 from time import sleep
 
 uidshowindex          = 0
-uidshowflg            = 0
+g_pac_num             = 0
+g_seq_num             = 0
 store_uid_switch      = 0
 uid_table_first_write = 0
 UID_SHOW_COL_NUM      = 5
@@ -25,7 +26,6 @@ MESSAGE_REVICED_LEN   = 2
 MESSAGE_LEN_LEN       = 1
 MESSAGE_XOR_LEN       = 1
 MESSAGE_END_LEN       = 1
-
 
 def message_status_check(str):
 	ISOTIMEFORMAT = '[ %Y-%m-%d %H:%M:%S ]'
@@ -61,7 +61,7 @@ def message_process_show(x,show_f):
 		show_str = "Fourth Statistic:"
 		show_f(show_str,'a')
 
-def message_show_cmd_10(len,str,show_f):
+def message_show_cmd_10(packnum,seqnum,acktype,len,str,show_f):
 	#print "message_show_cmd_10"
 	show_f(message_status_check1(str[0:2]),'a')
 	show_str = " WL_FILTER_STATUS = "+str[3:5]
@@ -70,7 +70,7 @@ def message_show_cmd_10(len,str,show_f):
 	show_f(show_str,'a')
 	#print str
 
-def message_show_cmd_11(len,str,show_f):
+def message_show_cmd_11(packnum,seqnum,acktype,len,str,show_f):
 	#print "message_show_cmd_10"
 	ISOTIMEFORMAT = '[ %Y-%m-%d %H:%M:%S ]'
 	now = time.strftime( ISOTIMEFORMAT, time.localtime( time.time() ) )
@@ -78,30 +78,12 @@ def message_show_cmd_11(len,str,show_f):
 	show_f(show_str,'a')
 	#uartc.message_show(str)
 
-def message_show_cmd_12(len,str,show_f):
-	#print "message_show_cmd_12"
-	show_f(message_status_check(str[0:2]),'a')
-	show_str = " WL_FILTER_STATUS = "+str[3:5]
-	uidlen   = string.atoi(str[6:8],16)
-	show_str += " WL_LEN = %d" % uidlen
-	show_f(show_str,'a')
 
-def message_show_cmd_20(len,str,show_f):
-	#print "message_show_cmd_20"
-	ISOTIMEFORMAT = '[ %Y-%m-%d %H:%M:%S ]'
-	now = time.strftime( ISOTIMEFORMAT, time.localtime( time.time() ) )
-	uidlen   = string.atoi(str[0:2],16)
-	show_str = now + " WL_OK_COUNT = %d" % uidlen
-	uidlen   = string.atoi(str[27:29],16)
-	show_str += " WL_LEN = %d" % uidlen
-	show_str += " WL_DETAIL = "+str[3:26]
-	show_f(show_str,'a')
-
-def message_show_cmd_22(len,str,show_f):
+def message_show_cmd_22(packnum,seqnum,acktype,len,str,show_f):
 	#print "message_show_cmd_22:white list init "
 	show_f(message_status_check(str[0:2]),'a')
 
-def message_show_cmd_26(len,str,show_f):
+def message_show_cmd_26(packnum,seqnum,acktype,len,str,show_f):
 	#print "message_show_cmd_26"
 	ISOTIMEFORMAT = '[ %Y-%m-%d %H:%M:%S ]'
 	now = time.strftime( ISOTIMEFORMAT, time.localtime( time.time() ) )
@@ -111,68 +93,107 @@ def message_show_cmd_26(len,str,show_f):
 	show_str += 'uID:[' + uid + ']'  + " Student ID:" + str[15:]
 	show_f(show_str,'a')
 
-def message_show_cmd_2b(len,str,show_f):
+def message_decode_uid_cmd_result(packnum,seqnum,acktype,len,str,show_f):
 	#print "message_show_cmd_2b"
 	#print str
 	global uidshowindex
-	global uidshowflg
+	global g_pac_num
+	global g_seq_num
 	global store_uid_switch
 	global uid_table_first_write
 
-	store_uid_switch = 1
-	uidlen   = string.atoi(str[0:2],16)
-	show_str = " uID SUM : %d " % uidlen
-	show_f(show_str,'a')
+	cmdtype = str[0:2]
+	str = str[3:]
 
-	if uidshowflg == 0:
-		uidshowindex = 0
-		uidshowflg   = 1
+	ISOTIMEFORMAT = '[ %Y-%m-%d %H:%M:%S ]'
+	now = time.strftime( ISOTIMEFORMAT, time.localtime( time.time() ) )
 
-	i = 0
-	j = 0
-	show_str = " "
+	if (cmdtype == "04"):
+		show_f(message_status_check(str[0:2]),'a')
+		uidlen   = string.atoi(str[3:],16)
+		show_str = " WL_LEN = %d" % uidlen
+		show_f(show_str,'a')
+		return
 
-	while i < len :
-		uid = str[(i+1)*3:(i+6)*3-1]
-		uid = uid.replace(' ','')
-		i = i + 5
-		if uid != "":
-			show_str     += "[%3d].%s " % (string.atoi(uid[0:2],16),uid[2:])
-			uidshowindex = uidshowindex + 1
-			j = j + 1
-		if j == UID_SHOW_COL_NUM:
-			j = 0
+	if (cmdtype == "01") | (cmdtype == "02"):
+		okcount   = string.atoi(str[0:2],16)
+		show_str = now + " WL_OK_COUNT = %d" % okcount
+		uidlen   = string.atoi(str[3:5],16)
+		show_str += " WL_LEN = %d" % uidlen
+		show_str += " WL_DETAIL = "+str[6:]
+		show_f(show_str,'a')
+		return
+
+	if cmdtype == "03":
+		#print "pack = %d seq = %d g_pac_num = %d g_seq_num = %d" % (packnum,seqnum,g_pac_num,g_seq_num)
+		if packnum != g_pac_num:
+			uidshowindex = 0
+			store_uid_switch = 0
+			uidlen   = string.atoi(str[0:2],16)
+			show_str = now + " uID SUM : %d " % uidlen
 			show_f(show_str,'a')
-			show_str = " "
-		if i >= len :
+			g_pac_num = packnum
+			if seqnum != g_seq_num:
+				store_uid_switch = 1
+				g_pac_num = seqnum
+		else:
+			show_str = now
 			show_f(show_str,'a')
-			show_str = " "
-	store_uid_switch = 0
-	uid_table_first_write = 0
 
-def message_show_decie_info(len,str,show_f):
+		i = 0
+		j = 0
+		show_str = " "
+
+		while i < len :
+			uid = str[(i+1)*3:(i+6)*3-1]
+			uid = uid.replace(' ','')
+			i = i + 5
+			if uid != "":
+				show_str     += "[%3d].%s " % (string.atoi(uid[0:2],16),uid[2:])
+				uidshowindex = uidshowindex + 1
+				j = j + 1
+			if j == UID_SHOW_COL_NUM:
+				j = 0
+				show_f(show_str,'a')
+				show_str = " "
+			if i >= len :
+				show_f(show_str,'a')
+				show_str = " "
+		uid_table_first_write = 0
+		return
+
+def message_decode_systick_cmd_result(packnum,seqnum,acktype,len,str,show_f):
 	#print "message_show_cmd_2c"
-	uid       = str[0:11]
-	show_str  = " ID  = "+uid.replace(' ','')
-	show_f(show_str,'a')
-	sw_verion = str[12:20]
-	sw_verion = sw_verion.replace(' ','')
-	sw1 = string.atoi(sw_verion[0:2], 10)
-	sw2 = string.atoi(sw_verion[2:6], 10)
-	show_str  = " SW  = %d.%02d" % (sw1,sw2)
-	show_f(show_str,'a')
-	hwstr = str[21:65]
-	hwstr = hwstr.replace(' ','')
-	hwstr = hwstr.decode("hex")
-	show_str  = " HW  = "+hwstr
-	show_f(show_str,'a')
-	comstr = str[66:]
-	comstr = comstr.replace(' ','')
-	comstr = comstr.decode("hex")
-	show_str  = " COM = "+comstr
-	show_f(show_str,'a')
+	ISOTIMEFORMAT = '[ %Y-%m-%d %H:%M:%S ]'
+	now = time.strftime( ISOTIMEFORMAT, time.localtime( time.time() ) )
+	show_str  = now
+	if acktype == 0x01:
+		show_f(show_str,'a')
+		uid       = str[0:11]
+		show_str  = " ID  = "+uid.replace(' ','')
+		show_f(show_str,'a')
+		sw_verion = str[12:20]
+		sw_verion = sw_verion.replace(' ','')
+		sw1 = string.atoi(sw_verion[0:2], 10)
+		sw2 = string.atoi(sw_verion[2:6], 10)
+		show_str  = " SW  = %d.%02d" % (sw1,sw2)
+		show_f(show_str,'a')
+		hwstr = str[21:65]
+		hwstr = hwstr.replace(' ','')
+		hwstr = hwstr.decode("hex")
+		show_str  = " HW  = "+hwstr
+		show_f(show_str,'a')
+		comstr = str[66:]
+		comstr = comstr.replace(' ','')
+		comstr = comstr.decode("hex")
+		show_str  = " COM = "+comstr
+		show_f(show_str,'a')
+	else:
+		err = str[0:2]
+		show_str = show_str + " Err Type: " + err
+		show_f(show_str,'a')
 
-def message_show_cmd_2d(len,str,show_f):
+def message_show_cmd_2d(packnum,seqnum,acktype,len,str,show_f):
 	#print "message_show_cmd_2d"
 	i = 0
 	while i < len :
@@ -181,17 +202,17 @@ def message_show_cmd_2d(len,str,show_f):
 		show_f(show_str,'a')
 		i = i + 4
 
-def message_show_cmd_2e(len,str,show_f):
+def message_show_cmd_2e(packnum,seqnum,acktype,len,str,show_f):
 	#print "message_show_cmd_2e"
 	str = str.replace(' ','')
 	show_str = " Src uid :"+str
 	show_f(show_str,'a')
 
-def message_show_cmd_2f(len,str,show_f):
+def message_show_cmd_2f(packnum,seqnum,acktype,len,str,show_f):
 	#print "message_show_cmd_2f"
 	show_f(message_status_check(str[0:2]),'a')
 
-def message_show_cmd_30(len,str,show_f):
+def message_show_cmd_30(packnum,seqnum,acktype,len,str,show_f):
 	#print "message_show_cmd_30"
 	message_process_show(string.atoi(str[0:3], 16),show_f)
 	show_str = "lost:"
@@ -215,7 +236,7 @@ def message_show_cmd_30(len,str,show_f):
 	show_str = "count:%d" % (len/5)
 	show_f(show_str,'a')
 
-def message_show_cmd_31(len,str,show_f):
+def message_show_cmd_31(packnum,seqnum,acktype,len,str,show_f):
 	#print "message_show_cmd_31"
 	message_process_show(string.atoi(str[0:3], 16),show_f)
 	show_str = "Ok:"
@@ -240,7 +261,7 @@ def message_show_cmd_31(len,str,show_f):
 	show_str = "count:%d" % (len/5)
 	show_f(show_str,'a')
 
-def message_show_cmd_43(len,str,show_f):
+def message_show_cmd_43(packnum,seqnum,acktype,len,str,show_f):
 	#print "message_show_cmd_30"
 	ISOTIMEFORMAT = '[ %Y-%m-%d %H:%M:%S ]'
 	now = time.strftime( ISOTIMEFORMAT, time.localtime( time.time() ) )
@@ -265,7 +286,7 @@ def message_show_cmd_43(len,str,show_f):
 	show_str = "count:%d" % (len/5)
 	show_f(show_str,'a')
 
-def message_show_cmd_fd(len,str,show_f):
+def message_Err(packnum,seqnum,acktype,len,str,show_f):
 	#print "message_show_cmd_fd"
 	show_f(message_status_check(str[0:2]),'a')
 	show_str = " err code = "+str[3:5]
@@ -279,13 +300,14 @@ class UartM():
 		self.detailed_result_path    = ""
 		self.uid_table_path          = ""
 		self.store_switch            = 0
+		self.ack_type                = 0
+		self.seq_num                 = 0
+		self.pac_num                 = 0
 		self.Count                   = [ 0, 0, 0, 0 ]
 		self.ReviceFunSets           = {
 			"10":message_show_cmd_10,"11":message_show_cmd_11,
-			"12":message_show_cmd_12,"13":message_show_decie_info,
-			"fd":message_show_cmd_fd,
-			"fe":message_show_cmd_fd,
-			"ff":message_show_cmd_fd,
+			"12":message_decode_uid_cmd_result,"13":message_decode_systick_cmd_result,
+			"14":message_Err,
 		}
 
 	def set_detailed_file(self,str):
@@ -361,6 +383,7 @@ class UartM():
 		startaddr = endaddr + 1
 		endaddr   = endaddr + MESSAGE_PACKNUM_LEN*3
 		packnum   = str[startaddr:endaddr]
+		self.pac_num = string.atoi(packnum, 16)
 		#show_str = "PACKNUM  = "+packnum
 		#self.show(show_str,'a')
 
@@ -368,6 +391,7 @@ class UartM():
 		startaddr = endaddr + 1
 		endaddr   = endaddr + MESSAGE_SEQNUM_LEN*3
 		seqnum    = str[startaddr:endaddr]
+		self.seq_num = string.atoi(seqnum, 16)
 		#show_str = "PACKNUM  = "+seqnum
 		#self.show(show_str,'a')
 
@@ -375,6 +399,7 @@ class UartM():
 		startaddr = endaddr + 1
 		endaddr   = endaddr + MESSAGE_PACKTYPE_LEN*3
 		packtype  = str[startaddr:endaddr]
+		self.ack_type = string.atoi(packtype, 16)
 		#show_str = "PACKTYPE = "+packtype
 		#self.show(show_str,'a')
 
@@ -422,10 +447,10 @@ class UartM():
 		#show_str = "END      = "+end
 		#self.show(show_str,'a')
 
-		self.ReviceFunSets[cmd](len_int,data,self.show)
+		self.ReviceFunSets[cmd](self.pac_num,self.seq_num,self.ack_type,len_int,data,self.show)
 
-		#show_str = " "
-		#self.show(show_str,'a')
+		show_str = " "
+		self.show(show_str,'a')
 
 	def store(self):
 		f = open(self.statistical_result_path,'w')
