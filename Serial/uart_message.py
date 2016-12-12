@@ -252,10 +252,12 @@ def message_show_cmd_43(len,str,show_f):
 	show_str = "count:%d" % (len/5)
 	show_f(show_str,'a')
 
-def message_show_cmd_fd(len,str,show_f):
+def message_show_cmd_e0(len,str,show_f):
 	#print "message_show_cmd_fd"
-	show_f(message_status_check(str[0:2]),'a')
-	show_str = " err code = "+str[3:5]
+	#show_f(message_status_check(str[0:2]),'a')
+	ISOTIMEFORMAT = '[ %Y-%m-%d %H:%M:%S ]'
+	now = time.strftime( ISOTIMEFORMAT, time.localtime( time.time() ) )
+	show_str = now + " err cmd = "+str[0:2] + " err code = "+str[3:]
 	show_f(show_str,'a')
 
 # import user module
@@ -282,9 +284,7 @@ class UartM():
 			"41":message_show_cmd_22,"42":message_show_cmd_26,
 			"43":message_show_cmd_43,
 			"a0":message_show_cmd_22,
-			"fd":message_show_cmd_fd,
-			"fe":message_show_cmd_fd,
-			"ff":message_show_cmd_fd,
+			"e0":message_show_cmd_e0,
 		}
 
 	def set_detailed_file(self,str):
