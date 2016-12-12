@@ -8,5 +8,5 @@ file_store_switch:1
 
 [cmd_file_setting]
 
-cmd_file_name: 6.01 zy_cmd_test.txt
+cmd_file_name: 7.01 zy_clicker_ctl_cmd.txt
 test_max:1

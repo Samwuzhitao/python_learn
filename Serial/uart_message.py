@@ -37,14 +37,14 @@ def message_status_check(str):
 		str1 = now + " FAIL"
 	return str1
 
-def message_status_check1(str):
-	ISOTIMEFORMAT = ' [ %Y-%m-%d %H:%M:%S ]'
-	now = time.strftime( ISOTIMEFORMAT, time.localtime( time.time() ) )
-	status = string.atoi(str, 10)
+def message_err_check(str):
+	status = string.atoi(str, 16)
 	if status == 0:
-		str1 = now + " OK"
-	else:
-		str1 = now + " BUSY"
+		str1 = " OK"
+	if status == 1:
+		str1 = " LEN ERR"
+	if status == 2:
+		str1 = " PARAMETER ERR"
 	return str1
 
 def message_process_show(x,show_f):
@@ -63,20 +63,40 @@ def message_process_show(x,show_f):
 
 def message_show_cmd_10(packnum,seqnum,acktype,len,str,show_f):
 	#print "message_show_cmd_10"
-	show_f(message_status_check1(str[0:2]),'a')
+	show_f(message_status_check(str[0:2]),'a')
 	show_str = " WL_FILTER_STATUS = "+str[3:5]
 	uidlen   = string.atoi(str[6:8],16)
 	show_str += " WL_LEN = %d" % uidlen
 	show_f(show_str,'a')
 	#print str
 
-def message_show_cmd_11(packnum,seqnum,acktype,len,str,show_f):
+def message_decode_clicker_setting(packnum,seqnum,acktype,len,str,show_f):
 	#print "message_show_cmd_10"
+	cmdtype = str[0:2]
+	str = str[3:]
+
 	ISOTIMEFORMAT = ' [ %Y-%m-%d %H:%M:%S ]'
 	now = time.strftime( ISOTIMEFORMAT, time.localtime( time.time() ) )
-	show_str = now + ' Message : ' + str
+
+	if (cmdtype == "01"):
+		desc = " G_ONOFF   : "
+	if (cmdtype == "02"):
+		desc = " G_POWER   : "
+	if (cmdtype == "03"):
+		desc = " G_DISP    : "
+	if (cmdtype == "04"):
+		desc = " N_CH      : "
+	if (cmdtype == "05"):
+		desc = " N_TIME    : "
+	if (cmdtype == "06"):
+		desc = " N_READ_ID : "
+	if (cmdtype == "07"):
+		desc = " N_WR_EE   : "
+	if (cmdtype == "08"):
+		desc = " N_RD_EE   : "
+
+	show_str = now + desc + message_err_check(str)
 	show_f(show_str,'a')
-	#uartc.message_show(str)
 
 
 def message_show_cmd_22(packnum,seqnum,acktype,len,str,show_f):
@@ -125,7 +145,6 @@ def message_decode_uid_cmd_result(packnum,seqnum,acktype,len,str,show_f):
 		return
 
 	if cmdtype == "03":
-		#print "pack = %d seq = %d g_pac_num = %d g_seq_num = %d" % (packnum,seqnum,g_pac_num,g_seq_num)
 		if packnum != g_pac_num:
 			uidshowindex = 0
 			store_uid_switch = 0
@@ -288,8 +307,7 @@ def message_show_cmd_43(packnum,seqnum,acktype,len,str,show_f):
 
 def message_Err(packnum,seqnum,acktype,len,str,show_f):
 	#print "message_show_cmd_fd"
-	show_f(message_status_check(str[0:2]),'a')
-	show_str = " err code = "+str[3:5]
+	show_str = message_status_check(str[0:2]) + " err code = "+str[3:5]
 	show_f(show_str,'a')
 
 # import user module
@@ -305,8 +323,10 @@ class UartM():
 		self.pac_num                 = 0
 		self.Count                   = [ 0, 0, 0, 0 ]
 		self.ReviceFunSets           = {
-			"10":message_show_cmd_10,"11":message_show_cmd_11,
-			"12":message_decode_uid_cmd_result,"13":message_decode_systick_cmd_result,
+			"10":message_show_cmd_10,
+			"11":message_decode_clicker_setting,
+			"12":message_decode_uid_cmd_result,
+			"13":message_decode_systick_cmd_result,
 			"14":message_Err,
 		}
 
