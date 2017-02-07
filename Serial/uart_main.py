@@ -55,10 +55,10 @@ def uart_send_cmd_process():
 			uart_cmd_des = uarts.get_cmd_des()
 			uart_cmd_des = uart_cmd_des.strip('\n')
 			if uart_cmd_des[0:1] == "<":
-				show_str = uart_cmd_des[4:6]+"%02d" % read_cmd_index + uart_cmd_des[8:]
+				show_str = uart_cmd_des[4]+"%02d" % read_cmd_index + uart_cmd_des[7:]
 				uartm.show(show_str,'a')
 			else:
-				show_str = uart_cmd_des[0:2]+"%02d" % read_cmd_index + uart_cmd_des[5:]
+				show_str = uart_cmd_des[0]+"%02d" % read_cmd_index + uart_cmd_des[3:]
 				uartm.show(show_str,'a')
 
 			# step 2: get cmd data

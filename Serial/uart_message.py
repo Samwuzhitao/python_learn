@@ -145,8 +145,9 @@ def message_show_cmd_2c(len,str,show_f):
 	sw_verion = str[12:20]
 	sw_verion = sw_verion.replace(' ','')
 	sw1 = string.atoi(sw_verion[0:2], 10)
-	sw2 = string.atoi(sw_verion[2:6], 10)
-	show_str  = " SW  = %d.%02d" % (sw1,sw2)
+	sw2 = string.atoi(sw_verion[3:4], 10)
+	sw3 = string.atoi(sw_verion[5:6], 10)
+	show_str  = " SW  = %d.%d%d" % (sw1,sw2,sw3)
 	show_f(show_str,'a')
 	hwstr = str[21:65]
 	hwstr = hwstr.replace(' ','')
@@ -271,7 +272,7 @@ class UartM():
 		self.Count                   = [ 0, 0, 0, 0 ]
 		self.ReviceFunSets           = {
 			"10":message_show_cmd_10,"11":message_show_cmd_11,
-			"12":message_show_cmd_12,
+			"12":message_show_cmd_12,"13":message_show_cmd_10,
 			"20":message_show_cmd_20,"21":message_show_cmd_20,
 			"22":message_show_cmd_22,"23":message_show_cmd_22,
 			"24":message_show_cmd_22,"25":message_show_cmd_22,
@@ -281,6 +282,7 @@ class UartM():
 			"2c":message_show_cmd_2c,"2d":message_show_cmd_22,
 			"2e":message_show_cmd_2e,"2f":message_show_cmd_2f,
 			"30":message_show_cmd_30,"31":message_show_cmd_31,
+			"40":message_show_cmd_22,
 			"41":message_show_cmd_22,"42":message_show_cmd_26,
 			"43":message_show_cmd_43,
 			"a0":message_show_cmd_22,
@@ -335,7 +337,7 @@ class UartM():
 			f.close()
 		print str
 
-	def message_show1(self,str):
+	def message_show(self,str):
 		show_str = "HEADER = "+str[1:3]
 		self.show(show_str,'a')
 		cmd_type = str[4:6]
@@ -364,7 +366,7 @@ class UartM():
 		show_str = " "
 		self.show(show_str,'a')
 
-	def message_show(self,str):
+	def message_show1(self,str):
 		global uidshowflg
 
 		cmd_type = str[4:6]
