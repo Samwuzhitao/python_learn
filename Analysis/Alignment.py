@@ -42,7 +42,7 @@ class UartDecode():
 			len_str  = str[18:20]
 			len_int  = string.atoi(len_str, 16)
 			if ( 21+len_int*3+5 ) < len(str) :
-				show_str = '<%5d> ' % cmd_index + str[0:21+len_int*3+5]
+				show_str = '<%10d> ' % cmd_index + str[0:21+len_int*3+5]
 				cmd_index = cmd_index + 1
 				self.show(show_str,'a')
 				self.decodefile( str[21+len_int*3+6:])

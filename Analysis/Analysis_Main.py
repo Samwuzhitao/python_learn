@@ -18,7 +18,7 @@ UID_MAX_COUNT       = 0
 UID_COUNT           = 0
 UID_STATISTIC_INDEX = 1
 WHITE_LIST_LEN      = 120
-UID_CMD_START_ADDR  = 8
+UID_CMD_START_ADDR  = 8+5
 
 def message_status_check(str):
 	global uartm
@@ -237,7 +237,7 @@ def message_show_cmd_30(len,str,show_f):
 		show_str += "[%3d].%s " % (string.atoi(uid[0:2], 16),uid[2:])
 		if uid_init_flg != 2:
 			uartm.add(uid)
-			uartm.uids_data[uid[2:]] = []
+			#uartm.uids_data[uid[2:]] = []
 		j = j + 1
 		if j == 5 :
 			j = 0
@@ -359,7 +359,7 @@ def clicker_cmd_show(len,sign,str,show_f):
 	is_white_list_uid = uartm.check(uid)
 	if is_white_list_uid == True:
 		show_str = uartm.cmdindex + 'uPOS:[%3d] ' % string.atoi(uartm.uidpos, 16) + 'uID:[' + uid + ']'  + " DATA:" + str
-		uartm.uids_data[uid].append(show_str)
+		#uartm.uids_data[uid].append(show_str)
 		#uartm.uids_data[uid] = '  ' + show_str
 		show_f(show_str,'a')
 	else:
@@ -387,7 +387,7 @@ def clicker_cmd_14(len,sign,str,show_f):
 class UartRevicer():
 	def __init__(self,file_name):
 		self.uids                    = []
-		self.uids_data               = {}
+		#self.uids_data               = {}
 		self.uid_len                 = 0
 		self.uidpos                  = ""
 		self.analysispath            = ""
@@ -396,7 +396,7 @@ class UartRevicer():
 		self.cmdindex                = ""
 		self.ReviceFunSets           = {
 			"10":message_show_cmd_10,"11":message_show_cmd_11,
-			"12":message_show_cmd_12,
+			"12":message_show_cmd_12,"13":message_show_cmd_10,
 			"20":message_show_cmd_20,"21":message_show_cmd_21,
 			"22":message_show_cmd_22,"23":message_show_cmd_22,
 			"24":message_show_cmd_22,"25":message_show_cmd_22,
@@ -482,10 +482,11 @@ class UartRevicer():
 		data     = cmddata[21:21+len_int*3]
 		xor      = cmddata[21+len_int*3:21+len_int*3+2]
 
-		if cmd_type != "2b":
-			uidshowflg = 0
-		self.cmdindex = cmdindex
-		self.ReviceFunSets[cmd_type](len_int,data,self.show)
+		if(len_int>0):
+			if cmd_type != "2b":
+				uidshowflg = 0
+			self.cmdindex = cmdindex
+			self.ReviceFunSets[cmd_type](len_int,data,self.show)
 
 	def clicker_message_show(self,str):
 		sign     = str[3:14]
@@ -528,19 +529,19 @@ if __name__=='__main__':
 	uartm.decode_file()
 
 	# 3.Analysys Clicker update data
-	show_str =  ""
-	uartm.show(show_str,'a')
-	show_str =  "THE LAST PUSH DATA:"
-	uartm.show(show_str,'a')
+	#show_str =  ""
+	#uartm.show(show_str,'a')
+	#show_str =  "THE LAST PUSH DATA:"
+	#uartm.show(show_str,'a')
 
-	index = 1
-	for key in uartm.uids_data:
-		show_str  = " <%3d> uID: " % index + key
-		show_str += ", Count : %3d" % len(uartm.uids_data[key]) + ", List : "
-		index = index + 1
-		uartm.show(show_str,'a')
-		itemindex = 1
-		for item in uartm.uids_data[key]:
-			show_str =  "\t[%3d]" % itemindex + item
-			itemindex = itemindex + 1
-			uartm.show(show_str,'a')
+	#index = 1
+	#for key in uartm.uids_data:
+	#	show_str  = " <%3d> uID: " % index + key
+		#show_str += ", Count : %3d" % len(uartm.uids_data[key]) + ", List : "
+		#index = index + 1
+		#uartm.show(show_str,'a')
+		#itemindex = 1
+		#for item in uartm.uids_data[key]:
+			#show_str =  "\t[%3d]" % itemindex + item
+			#itemindex = itemindex + 1
+			#uartm.show(show_str,'a')

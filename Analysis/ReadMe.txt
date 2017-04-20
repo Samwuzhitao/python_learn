@@ -1,13 +1,12 @@
-Ê¹ÓÃ»·¾³£º
-	win7 64Î» PC
+ï»¿ä½¿ç”¨çŽ¯å¢ƒï¼š
+	win7 64ä½ PC
 
-Èí¼þ¹¤×÷Ä¿Â¼£º
+è½¯ä»¶å·¥ä½œç›®å½•ï¼š
 	dist
 
-¹¦ÄÜÃèÊö£º
-	ÄÜ½âÎö5C¿ªÍ·µÄÖ¸Áî£¬Èç¹ûÊÇ´ðÌâÆ÷ËÍÉÏÀ´µÄÊý¾ÝÔòÔ­Ñù´òÓ¡³öÀ´¡£
+åŠŸèƒ½æè¿°ï¼š
+	èƒ½è§£æž5Cå¼€å¤´çš„æŒ‡ä»¤ï¼Œå¦‚æžœæ˜¯ç­”é¢˜å™¨é€ä¸Šæ¥çš„æ•°æ®åˆ™åŽŸæ ·æ‰“å°å‡ºæ¥ã€‚
 
-Ê¹ÓÃ·½·¨£º
-	¡¾1¡¿Ïòtest_hex_file.txtÎÄ¼þÖÐ¼ÓÈëÔ­Ê¼Êý¾Ý£¬Ðè±£Ö¤Ò»¸öÖ¸ÁîÊý¾ÝÖ»Õ¼Ò»ÐÐ
-	¡¾2¡¿µã»÷ Analysis_hex_procotol-v2.0.exe Éú³ÉÐ­ÒéµÄ½âÎöÎÄµµ analysis_hex_file.txt
-	¡¾3¡¿µã»÷ Analysis-procotol-v2.0.exe Éú³ÉÍ³¼ÆÎÄµµ analysisfile.txt
+ä½¿ç”¨æ–¹æ³•ï¼š
+	ã€1ã€‘DataFile.txtæ–‡ä»¶ä¸­åŠ å…¥åŽŸå§‹æ•°æ®ï¼Œéœ€ä¿è¯æŒ‡ä»¤æ•°æ®ä¸èƒ½åªå ä¸€è¡Œ
+	ã€2ã€‘ç‚¹å‡» Analysis_Main.py ç”Ÿæˆç»Ÿè®¡æ–‡æ¡£ DataFileAnalysisResult.txt
