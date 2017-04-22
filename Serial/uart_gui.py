@@ -1,143 +1,213 @@
-#! /usr/bin/env python
-#coding:utf-8
+# -*- coding: utf-8 -*-
+"""
+Created on Sat Apr 22 10:59:35 2017
 
-__file__   = "XLiCOM.Py"
-__author__ = "XIVN1987@163.com"
+@author: john
+"""
 
 import sys
-import ttk
-import time
+from time import sleep
+from math import *
+from PyQt4.QtCore import *
+from PyQt4.QtGui  import *
 import serial
-import threading
-import Tkinter as Tk
-import Tkinter as tk
 import string
+import threading
 
-import uart_init
-import uart_decode
-import uart_message
+ser        = 0
+open_flag  = 0
 
-isOpened = threading.Event()
+inputcount = 0
 
-root = Tk.Tk()
-ComX = Tk.StringVar(root,'COM1')
-Baud = Tk.StringVar(root,"1152000")
-Dbit = Tk.StringVar(root,'8')
-Sbit = Tk.StringVar(root,'1')
-Chck = Tk.StringVar(root,'None')
-HexD = Tk.BooleanVar(root,False)
-HexO = Tk.BooleanVar(root,False)
-Open = Tk.StringVar(root,u'打开串口')
-availableCom = uart_init.guiscan();
-SerialPort = 1
-txt1 = 1
+def uart_listen_process():
+    global ser
+    global browser
+    global open_flag
+    global inputcount
 
-def printCoords():
-    print "hello word"
-
-def gui_show(str,mode):
-    global txt1
-    txt1.insert("insert",str+"\r\n")
-
-def uart_compress_cmd_process():
-    global SerialPort
-    global uartr
-    global uartm
-    global txt1
-    char = ""
+    json_revice = json_decode()
+    str_len = 0
 
     while True:
-        read_char = SerialPort.read(1)
-        #print read_char
-        char += "%02X " % ord(read_char)
-        uartr.revice_status_machine(read_char,uartm.message_show,uartm.count_inc)
-        uart_current_status = uartr.get_status()
-        if uart_current_status == 100:
-            cmd_type = char[3:5]
-            len_str  = char[18:20]
-            len_int  = string.atoi(len_str, 16)
-            data     = char[21:21+len_int*3]
+        if open_flag == 1:
+            read_char = ser.read(1)
+            #print read_char
+            str1 = json_revice.r_machine(read_char)
+            if len(str1) == 0:
+                str_len = str_len + 1
+            else:
+                #print "len : %d %s" % (str_len, str)
+                browser.append("<b>Output[%d]:</b>%s" % (inputcount-1, str1))
+                str_len = 0
 
-            uartm.ReviceFunSets[cmd_type](len_int,data,gui_show)
+class json_decode():
+    def __init__(self):
+        self.status      = 0
+        self.cnt         = 0
+        self.str         = ""
 
-            char = ""
-            uartr.set_status(0)
+    def r_machine(self,x):
+        char = x
+        #print "status = %d cnt = %d str: %s" % (self.status,self.cnt,self.str)
 
-def uart_send_data():
-    global SerialPort
-    uart_cmd_data = "5C 10 01 0C 14 55 0D 5A 00 00 00 00 00 11 03 01 01 41 53 CA C1 CA"
-    uart_cmd_data = uart_cmd_data.replace(' ','')
-    print uart_cmd_data
-    uart_cmd_data = uart_cmd_data.decode("hex")
-    SerialPort.write(uart_cmd_data)
+        # revice header
+        if self.status == 0:
+            self.str = ""
+            if char == '{':
+                self.str =  char
+                self.cnt = self.cnt + 1
+                self.status = 1
+                return ""
 
-def main():
-    global txt1
+        # revice data
+        if self.status == 1:
+            self.str = self.str + char
+            if char == '{':
+                self.cnt = self.cnt + 1
+                return ""
+            if char == '}':
+                self.cnt = self.cnt - 1
+                if self.cnt == 0:
+                    #print self.str
+                    self.status = 0
+                    self.cnt    = 0
+                    return self.str
+                else:
+                    return ""
+        return ""
 
-    root.title("COM Shell")
+class DtqDebuger(QDialog):
+    def __init__(self, parent=None):
+        global ser
+        global browser
+        global open_flag
 
-    txt1 = Tk.Text(root,width=80,border=5)
-    txt1.pack(side='top',padx=3,pady=1,anchor='c')
+        super(DtqDebuger, self).__init__(parent)
+        inputcount = 0
+        self.ports_dict = {}
 
-    cnv1 = tk.Canvas(root,height=26,width=580)
-    cnv1.pack(side='top',padx=0,pady=0,anchor='c')
-    cnv1.create_window( 30,15,window=ttk.Label(root,text=u'输入框：'))
-    cnv1.create_window(210,15,window=ttk.Entry(root,width=43))
-    send = ttk.Button(root,text=u'发送',width=10,command=uart_send_data)
-    send.pack(side='top',padx=0,pady=0,anchor='w')
-    cnv1.create_window(387,15,window=send)
-    cnv1.create_window(472,15,window=ttk.Button(root,text=u'清除',width=10))
-    cnv1.create_window(547,15,window=ttk.Checkbutton(root,text=u'HEX显示',variable=HexD,onvalue=True,offvalue=False))
+        self.com_label=QLabel(u'串口')  
+        self.com_combo=QComboBox(self) 
+        self.uart_scan()
 
-    cnv2 = tk.Canvas(root,height=26,width=580)
-    cnv2.pack(side='top',padx=0,pady=0,anchor='c')
-    cnv2.create_window( 30,15,window=ttk.Label(root,text=u'串口号：'))
-    cnv2.create_window(105,15,window=ttk.Combobox(root,textvariable=ComX,values=availableCom,width=12))
-    cnv2.create_window(202,15,window=ttk.Label(root,text=u'波特率：'))
-    cnv2.create_window(277,15,window=ttk.Combobox(root,textvariable=Baud,values=['9600','115200','1152000'],width=12))
-    cnv2.create_window(398,15,window=ttk.Button(root,textvariable=Open,width=10,command=lambda:COMOpen(cnv2)))
-    cnv2.create_oval(470,7,486,23,fill='black',tag='led')
-    cnv2.create_window(547,15,window=ttk.Checkbutton(root,text=u'HEX发送',variable=HexO,onvalue=True,offvalue=False))
+        self.com_lineedit = QLineEdit(u'COM1')
+        self.baudrate_label=QLabel(u"波特率") 
+        self.baudrate_lineedit = QLineEdit(u'1152000')
 
-    cnv3 = tk.Canvas(root,height=26,width=580)
-    cnv3.pack(side='top',padx=0,pady=0,anchor='c')
-    cnv3.create_window( 30,15,window=ttk.Label(root,text=u'数据位：'))
-    cnv3.create_window(105,15,window=ttk.Combobox(root,textvariable=Dbit,values=['9','8','7','6','5'],width=12))
-    cnv3.create_window(202,15,window=ttk.Label(root,text=u'停止位：'))
-    cnv3.create_window(277,15,window=ttk.Combobox(root,textvariable=Sbit,values=['1','2'],width=12))
-    cnv3.create_window(370,15,window=ttk.Label(root,text=u'校验位：'))
-    cnv3.create_window(445,15,window=ttk.Combobox(root,textvariable=Chck,values=['None','Odd','Even','Mark','Space'],width=12))
-    cnv3.create_window(547,15,window=ttk.Button(root,text=u'扩展',width=9))
+        self.displaystyle_label=QLabel(u"显示")
+        self.display_combo=QComboBox(self) 
+        self.display_combo.addItem('String')
+        self.display_combo.addItem('HEX')
+        self.open_button=QPushButton(u"打开串口")
+        self.connect(self.open_button, SIGNAL("clicked()"), self.uart_open)
 
-    cnv1.bind('<Button-1>',printCoords)
+        self.sendstyle_label=QLabel(u"发送")
+        self.send_combo=QComboBox(self) 
+        self.send_combo.addItem('String')
+        self.send_combo.addItem('HEX')
 
-    root.mainloop()
+        self.send_time_label=QLabel(u"发送周期") 
+        self.send_time_lineedit = QLineEdit(u'1000')
+        self.send_time_unit_label=QLabel(u"ms") 
+        self.autosend_button=QPushButton(u"自动发送")
+        self.lineedit = QLineEdit(u"输入指令,以Enter结束！")
+        self.lineedit.selectAll()
+        self.lineedit.setDragEnabled(True)
+        self.lineedit.setMaxLength(5000)
 
+        c_hbox = QHBoxLayout()
+        c_hbox.addWidget(self.com_label)
+        c_hbox.addWidget(self.com_combo)
+        c_hbox.addWidget(self.baudrate_label)
+        c_hbox.addWidget(self.baudrate_lineedit)
+        c_hbox.addWidget(self.displaystyle_label)
+        c_hbox.addWidget(self.display_combo)
 
-def COMOpen(cnv2):
-    global SerialPort
+        c_hbox.addWidget(self.open_button)
 
-    if not isOpened.isSet():
+        t_hbox = QHBoxLayout()
+        t_hbox.addWidget(self.sendstyle_label)
+        t_hbox.addWidget(self.send_combo)
+        t_hbox.addWidget(self.send_time_label)
+        t_hbox.addWidget(self.send_time_lineedit)
+        t_hbox.addWidget(self.send_time_unit_label)
+        t_hbox.addWidget(self.autosend_button)
+
+        vbox = QVBoxLayout()
+        vbox.addLayout(c_hbox)
+        browser = QTextBrowser()
+        vbox.addWidget(browser)
+        vbox.addLayout(t_hbox)
+        vbox.addWidget(self.lineedit)
+        
+        self.setLayout(vbox)
+
+        self.setGeometry(600, 600, 600, 500)
+        self.lineedit.setFocus()
+        self.connect(self.lineedit, SIGNAL("returnPressed()"), self.uart_send_data)
+        self.setWindowTitle(u"答题器调试工具")
+
+    def updateUi(self):
+        global browser
+        global inputcount
+
         try:
-            SerialPort = serial.Serial( 5, 1152000 )
-        except Exception:
-            print "Serial Open Error!"
-        else:
-            isOpened.set()
-            Open.set(u'关闭串口')
-            cnv2.itemconfig('led',fill='green')
-            reader  = threading.Thread(target=uart_compress_cmd_process)
-            print 'Process reader is going to start...'
-            reader.start()
-    else:
-        SerialPort.close()
-        isOpened.clear()
-        Open.set(u'打开串口')
-        cnv2.itemconfig('led',fill='black')
+            text = unicode(self.lineedit.text())
+            browser.append(" <b>Input[%d]:</b>%s =%s" %(inputcount, text, eval(text)))
+            inputcount = inputcount + 1
+        except:
+            self.browser.append("<font color=red>%s is invalid!</font>" % text)
 
+    def uart_scan(self):
+        for i in range(256):
+            
+            try:
+                s = serial.Serial(i)
+                self.com_combo.addItem(s.portstr)
+                self.ports_dict[s.portstr] = i
+                s.close()   # explicit close 'cause of delayed GC in java
+            except serial.SerialException:
+                pass
+
+    def uart_open(self):
+        global ser
+        global browser
+        global open_flag
+        global reader
+        global inputcount
+
+        if open_flag == 0:
+            serial_port = str(self.com_combo.currentText())
+            baud_rate   = str(self.baudrate_lineedit.text())
+            ser = serial.Serial( self.ports_dict[serial_port], string.atoi(baud_rate, 10))
+            open_flag = 1
+            #browser.append("Open %s OK!" % ser.port )
+            #print 'Process reader is going to start...'
+            if( inputcount == 0):
+                reader.start()
+
+            init_data = "{'fun': 'get_device_info'}"
+            browser.append("<b>Input [%d]:</b>%s" %( inputcount, init_data))
+            inputcount = inputcount + 1
+            ser.write(init_data)
+        else:
+            browser.append("Close %s OK!" % ser.port )
+            ser.close() 
+            open_flag = 0
+
+    def uart_send_data(self):
+        global ser
+        global inputcount
+        if open_flag == 1:
+            data = str(self.lineedit.text())
+            browser.append("<b>Input[%d]:</b>%s" %(inputcount, data))
+            inputcount = inputcount + 1
+            ser.write(data)
 
 if __name__=='__main__':
-    uartr = uart_decode.UartR()
-    uartm = uart_message.UartM()
-    isOpened.clear()
-    main()
+    reader = threading.Thread(target=uart_listen_process)
+
+    app = QApplication(sys.argv)
+    datdebuger = DtqDebuger()
+    datdebuger.show()
+    exit(app.exec_())
