@@ -16,7 +16,6 @@ import threading
 
 ser        = 0
 open_flag  = 0
-
 inputcount = 0
 
 def uart_listen_process():
@@ -93,14 +92,17 @@ class DtqDebuger(QDialog):
         self.com_lineedit = QLineEdit(u'COM1')
         self.baudrate_label=QLabel(u"波特率：") 
         self.baudrate_lineedit = QLineEdit(u'1152000')
-        self.baudrate_unit_label=QLabel(u"/bps ") 
+        self.baudrate_unit_label=QLabel(u"bps ") 
 
         self.displaystyle_label=QLabel(u"显示格式：")
         self.display_combo=QComboBox(self) 
         self.display_combo.addItem(u'字符串')
         self.display_combo.addItem(u'16进制')
-        self.open_button=QPushButton(u"打开串口")
-        self.clear_revice_button=QPushButton(u"清除接收数据")
+        self.protocol_label=QLabel(u"协议版本：")
+        self.protocol_combo=QComboBox(self) 
+        self.protocol_combo.addItem(u'JSON')
+        self.protocol_combo.addItem(u'HEX')
+        self.clear_revice_button=QPushButton(u"清空数据")
 
         self.sendstyle_label=QLabel(u"发送格式：")
         self.send_combo=QComboBox(self) 
@@ -110,11 +112,15 @@ class DtqDebuger(QDialog):
         self.auto_send_chackbox = QCheckBox() 
         self.send_time_label=QLabel(u"发送周期：") 
         self.send_time_lineedit = QLineEdit(u'1000')
-        self.send_time_unit_label=QLabel(u"/ms ") 
-        self.autosend_button=QPushButton(u"发送数据")
-        self.clear_send_button=QPushButton(u"清除发送数据")
+        self.send_time_unit_label=QLabel(u"ms ") 
 
-        self.send_lineedit = QLineEdit(u"{'fun': 'get_device_info'}")
+        self.update_fm_button=QPushButton(u"升级程序")
+        self.update_fm_label=QLabel(u"固件版本：") 
+        self.update_fm_combo=QComboBox(self) 
+        self.update_fm_combo.addItem(u'天喻')
+        self.update_fm_combo.addItem(u'自有')
+
+        self.send_lineedit = QLineEdit(u"{'fun':'get_device_info'}")
         self.send_lineedit.selectAll()
         self.send_lineedit.setDragEnabled(True)
         self.send_lineedit.setMaxLength(5000)
@@ -128,7 +134,8 @@ class DtqDebuger(QDialog):
         c_hbox.addWidget(self.displaystyle_label)
         c_hbox.addWidget(self.display_combo)
         c_hbox.addWidget(self.clear_revice_button)
-        c_hbox.addWidget(self.open_button)
+        c_hbox.addWidget(self.protocol_label)
+        c_hbox.addWidget(self.protocol_combo)
 
         t_hbox = QHBoxLayout()
         t_hbox.addWidget(self.auto_send_label)
@@ -138,8 +145,9 @@ class DtqDebuger(QDialog):
         t_hbox.addWidget(self.send_time_unit_label)
         t_hbox.addWidget(self.sendstyle_label)
         t_hbox.addWidget(self.send_combo)
-        t_hbox.addWidget(self.clear_send_button)
-        t_hbox.addWidget(self.autosend_button)
+        t_hbox.addWidget(self.update_fm_label)
+        t_hbox.addWidget(self.update_fm_combo)
+        t_hbox.addWidget(self.update_fm_button)
 
         vbox = QVBoxLayout()
         vbox.addLayout(c_hbox)
@@ -152,20 +160,13 @@ class DtqDebuger(QDialog):
 
         self.setGeometry(600, 600, 600, 500)
         self.send_lineedit.setFocus()
-        self.connect(self.open_button,SIGNAL('clicked()'),self.uart_open)
         self.connect(self.send_lineedit, SIGNAL("returnPressed()"), self.uart_send_data)
+        #self.connect(self.clear_revice_button, SIGNAL("clicked()"), self.uart_data_clear)
         self.setWindowTitle(u"答题器调试工具")
 
-    def updateUi(self):
+    def uart_data_clear(self):
         global browser
-        global inputcount
-
-        try:
-            text = unicode(self.lineedit.text())
-            browser.append(" <b>Input[%d]:</b>%s =%s" %(inputcount, text, eval(text)))
-            inputcount = inputcount + 1
-        except:
-            self.browser.append("<font color=red>%s is invalid!</font>" % text)
+        browser.clear()
 
     def uart_scan(self):
         for i in range(256):
@@ -178,32 +179,6 @@ class DtqDebuger(QDialog):
             except serial.SerialException:
                 pass
 
-    def uart_open(self):
-        global ser
-        global browser
-        global open_flag
-        global reader
-        global inputcount
-
-        if open_flag == 0:
-            serial_port = str(self.com_combo.currentText())
-            baud_rate   = str(self.baudrate_lineedit.text())
-            ser = serial.Serial( self.ports_dict[serial_port], string.atoi(baud_rate, 10))
-            open_flag = 1
-            browser.append("Open %s OK!" % ser.port )
-            #print 'Process reader is going to start...'
-            if( inputcount == 0):
-                reader.start()
-
-            init_data = "{'fun': 'get_device_info'}"
-            browser.append("<b>Input [%d]:</b>%s" %( inputcount, init_data))
-            inputcount = inputcount + 1
-            ser.write(init_data)
-        else:
-            browser.append("Close %s OK!" % ser.port )
-            ser.close() 
-            open_flag = 0
-
     def uart_send_data(self):
         global ser
         global inputcount
@@ -213,6 +188,7 @@ class DtqDebuger(QDialog):
             serial_port = str(self.com_combo.currentText())
             baud_rate   = str(self.baudrate_lineedit.text())
             ser = serial.Serial( self.ports_dict[serial_port], string.atoi(baud_rate, 10))
+            browser.append("<font color=red> Open <b>%s</b> OK!</font>" % serial_port )
             open_flag = 1
 
         if( inputcount == 0):
