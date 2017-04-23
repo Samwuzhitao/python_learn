@@ -86,51 +86,59 @@ class DtqDebuger(QDialog):
         inputcount = 0
         self.ports_dict = {}
 
-        self.com_label=QLabel(u'串口')  
+        self.com_label=QLabel(u'串口：')  
         self.com_combo=QComboBox(self) 
         self.uart_scan()
 
         self.com_lineedit = QLineEdit(u'COM1')
-        self.baudrate_label=QLabel(u"波特率") 
+        self.baudrate_label=QLabel(u"波特率：") 
         self.baudrate_lineedit = QLineEdit(u'1152000')
+        self.baudrate_unit_label=QLabel(u"/bps ") 
 
-        self.displaystyle_label=QLabel(u"显示")
+        self.displaystyle_label=QLabel(u"显示格式：")
         self.display_combo=QComboBox(self) 
-        self.display_combo.addItem('String')
-        self.display_combo.addItem('HEX')
+        self.display_combo.addItem(u'字符串')
+        self.display_combo.addItem(u'16进制')
         self.open_button=QPushButton(u"打开串口")
-        self.connect(self.open_button, SIGNAL("clicked()"), self.uart_open)
+        self.clear_revice_button=QPushButton(u"清除接收数据")
 
-        self.sendstyle_label=QLabel(u"发送")
+        self.sendstyle_label=QLabel(u"发送格式：")
         self.send_combo=QComboBox(self) 
-        self.send_combo.addItem('String')
-        self.send_combo.addItem('HEX')
-
-        self.send_time_label=QLabel(u"发送周期") 
+        self.send_combo.addItem(u'字符串')
+        self.send_combo.addItem(u'16进制')
+        self.auto_send_label=QLabel(u"自动发送") 
+        self.auto_send_chackbox = QCheckBox() 
+        self.send_time_label=QLabel(u"发送周期：") 
         self.send_time_lineedit = QLineEdit(u'1000')
-        self.send_time_unit_label=QLabel(u"ms") 
-        self.autosend_button=QPushButton(u"自动发送")
-        self.lineedit = QLineEdit(u"输入指令,以Enter结束！")
-        self.lineedit.selectAll()
-        self.lineedit.setDragEnabled(True)
-        self.lineedit.setMaxLength(5000)
+        self.send_time_unit_label=QLabel(u"/ms ") 
+        self.autosend_button=QPushButton(u"发送数据")
+        self.clear_send_button=QPushButton(u"清除发送数据")
+
+        self.send_lineedit = QLineEdit(u"{'fun': 'get_device_info'}")
+        self.send_lineedit.selectAll()
+        self.send_lineedit.setDragEnabled(True)
+        self.send_lineedit.setMaxLength(5000)
 
         c_hbox = QHBoxLayout()
         c_hbox.addWidget(self.com_label)
         c_hbox.addWidget(self.com_combo)
         c_hbox.addWidget(self.baudrate_label)
         c_hbox.addWidget(self.baudrate_lineedit)
+        c_hbox.addWidget(self.baudrate_unit_label)
         c_hbox.addWidget(self.displaystyle_label)
         c_hbox.addWidget(self.display_combo)
-
+        c_hbox.addWidget(self.clear_revice_button)
         c_hbox.addWidget(self.open_button)
 
         t_hbox = QHBoxLayout()
-        t_hbox.addWidget(self.sendstyle_label)
-        t_hbox.addWidget(self.send_combo)
+        t_hbox.addWidget(self.auto_send_label)
+        t_hbox.addWidget(self.auto_send_chackbox)
         t_hbox.addWidget(self.send_time_label)
         t_hbox.addWidget(self.send_time_lineedit)
         t_hbox.addWidget(self.send_time_unit_label)
+        t_hbox.addWidget(self.sendstyle_label)
+        t_hbox.addWidget(self.send_combo)
+        t_hbox.addWidget(self.clear_send_button)
         t_hbox.addWidget(self.autosend_button)
 
         vbox = QVBoxLayout()
@@ -138,13 +146,14 @@ class DtqDebuger(QDialog):
         browser = QTextBrowser()
         vbox.addWidget(browser)
         vbox.addLayout(t_hbox)
-        vbox.addWidget(self.lineedit)
+        vbox.addWidget(self.send_lineedit)
         
         self.setLayout(vbox)
 
         self.setGeometry(600, 600, 600, 500)
-        self.lineedit.setFocus()
-        self.connect(self.lineedit, SIGNAL("returnPressed()"), self.uart_send_data)
+        self.send_lineedit.setFocus()
+        self.connect(self.open_button,SIGNAL('clicked()'),self.uart_open)
+        self.connect(self.send_lineedit, SIGNAL("returnPressed()"), self.uart_send_data)
         self.setWindowTitle(u"答题器调试工具")
 
     def updateUi(self):
@@ -181,7 +190,7 @@ class DtqDebuger(QDialog):
             baud_rate   = str(self.baudrate_lineedit.text())
             ser = serial.Serial( self.ports_dict[serial_port], string.atoi(baud_rate, 10))
             open_flag = 1
-            #browser.append("Open %s OK!" % ser.port )
+            browser.append("Open %s OK!" % ser.port )
             #print 'Process reader is going to start...'
             if( inputcount == 0):
                 reader.start()
@@ -198,11 +207,22 @@ class DtqDebuger(QDialog):
     def uart_send_data(self):
         global ser
         global inputcount
-        if open_flag == 1:
-            data = str(self.lineedit.text())
-            browser.append("<b>Input[%d]:</b>%s" %(inputcount, data))
-            inputcount = inputcount + 1
-            ser.write(data)
+        global open_flag
+
+        if open_flag == 0:
+            serial_port = str(self.com_combo.currentText())
+            baud_rate   = str(self.baudrate_lineedit.text())
+            ser = serial.Serial( self.ports_dict[serial_port], string.atoi(baud_rate, 10))
+            open_flag = 1
+
+        if( inputcount == 0):
+            reader.start()
+
+        data = str(self.send_lineedit.text())
+
+        browser.append("<b>Input [%d]:</b>%s" %(inputcount, data))
+        inputcount = inputcount + 1
+        ser.write(data)
 
 if __name__=='__main__':
     reader = threading.Thread(target=uart_listen_process)
