@@ -375,4 +375,4 @@ if __name__=='__main__':
     app = QApplication(sys.argv)
     datdebuger = DtqDebuger()
     datdebuger.show()
-    exit(app.exec_())
+    app.exec_()
