@@ -13,60 +13,79 @@ from PyQt4.QtGui  import *
 import serial
 import string
 import time
-import threading
 
 ser            = 0
 show_time_flag = 0
 inputcount     = 0
-messages       = []
-send_message   = ""
 atuo_send_time = 0
 auto_send_flag = 0
+send_message   = ""
 
-def uart_autosend_process():
-    global ser
-    global show_time_flag
-    global inputcount
-    global messages
-    global send_message
+class UartAutoSend(QThread): 
+	def __init__(self,parent=None): 
+		super(UartAutoSend,self).__init__(parent) 
+		self.working=True 
+		self.num=0 
 
-    while True:
-        sleep(atuo_send_time/1000)
-        if ser.isOpen() == True:
-            if atuo_send_time != 0:
-                inputcount = inputcount + 1
-                ser.write(send_message)
-                data = u"<b>S[%d]:</b>%s" % (inputcount-1, send_message)
-                messages.append(data)
+	def __del__(self): 
+		self.working=False 
+		self.wait() 
 
-def uart_listen_process():
-    global ser
-    global show_time_flag
-    global inputcount
-    global messages
+	def run(self): 
+		global ser
+		global inputcount
+		global send_message
 
-    json_revice = json_decode()
-    str_len = 0
-    ISOTIMEFORMAT = '%Y-%m-%d %H:%M:%S'
-    
-    while True:
-        if ser.isOpen() == True:
-            read_char = ser.read(1)
-            #print read_char
-            str1 = json_revice.r_machine(read_char)
-            if len(str1) == 0:
-                str_len = str_len + 1
-            else:
-                now = time.strftime( ISOTIMEFORMAT, time.localtime( time.time() ) )
-                if show_time_flag == 1:
-                    data = u"【%s】 <b>R[%d]:</b>%s" % (now, inputcount-1, str1)
-                else:
-                    data = u"<b>R[%d]:</b>%s" % (inputcount-1, str1)
-                messages.append(data)
-                #print messages
-                str_len = 0
+		while self.working==True: 
+			if inputcount > 0:
+				if atuo_send_time != 0:
+					inputcount = inputcount + 1
+					ser.write(send_message)
+					if show_time_flag == 1:
+						ISOTIMEFORMAT = '%Y-%m-%d %H:%M:%S'
+						now = time.strftime( ISOTIMEFORMAT, time.localtime( time.time() ) )
+						send_str = u"【%s】<b>S[%d]:</b>%s" % (now, inputcount-1, send_message)
+					else:
+						send_str = u"<b>S[%d]:</b>%s" % (inputcount-1, send_message)
+					self.emit(SIGNAL('output(QString)'),send_str) 
+					sleep(atuo_send_time/1000)
 
-class json_decode():
+class UartListen(QThread): 
+    def __init__(self,parent=None): 
+        super(UartListen,self).__init__(parent) 
+        self.working=True 
+        self.num=0 
+
+    def __del__(self): 
+        self.working=False 
+        self.wait() 
+
+    def run(self): 
+    	global ser
+    	json_revice = JsonDecode()
+    	str_len = 0
+    	ISOTIMEFORMAT = '%Y-%m-%d %H:%M:%S'
+
+        while self.working==True: 
+        	if ser.isOpen() == True:
+	            read_char = ser.read(1)
+	            #print read_char
+	            str1 = json_revice.r_machine(read_char)
+	            if len(str1) == 0:
+	                str_len = str_len + 1
+	            else:
+	                now = time.strftime( ISOTIMEFORMAT, time.localtime( time.time() ) )
+	                if show_time_flag == 1:
+	                    recv_str = u"【%s】 <b>R[%d]:</b>%s" % (now, inputcount-1, str1)
+	                else:
+	                    recv_str = u"<b>R[%d]:</b>%s" % (inputcount-1, str1)
+	                #messages.append(data)
+	                #print file_str
+	                str_len = 0
+	                self.emit(SIGNAL('output(QString)'),recv_str) 
+	                #self.sleep(3) 
+
+class JsonDecode():
     def __init__(self):
         self.status      = 0
         self.cnt         = 0
@@ -105,7 +124,6 @@ class json_decode():
 class DtqDebuger(QDialog):
     def __init__(self, parent=None):
         global ser
-        global browser
 
         super(DtqDebuger, self).__init__(parent)
         inputcount = 0
@@ -141,7 +159,7 @@ class DtqDebuger(QDialog):
         self.show_time_chackbox = QCheckBox() 
 
         self.send_time_label=QLabel(u"发送周期：") 
-        self.send_time_lineedit = QLineEdit(u'1000')
+        self.send_time_lineedit = QLineEdit(u'4000')
         self.send_time_unit_label=QLabel(u"ms ") 
 
         self.update_fm_button=QPushButton(u"升级程序")
@@ -183,10 +201,10 @@ class DtqDebuger(QDialog):
         t_hbox.addWidget(self.update_fm_combo)
         t_hbox.addWidget(self.update_fm_button)
 
+        self.browser = QTextBrowser()
         vbox = QVBoxLayout()
         vbox.addLayout(c_hbox)
-        browser = QTextBrowser()
-        vbox.addWidget(browser)
+        vbox.addWidget(self.browser)
         vbox.addLayout(t_hbox)
         vbox.addWidget(self.send_lineedit)
         
@@ -200,9 +218,10 @@ class DtqDebuger(QDialog):
         self.auto_send_chackbox.stateChanged.connect(self.uart_auto_send_check)
         self.setWindowTitle(u"答题器调试工具")
 
-        self.timer = QTimer()
-        self.timer.timeout.connect(self.uart_update_text)
-        self.timer.start(100)
+        self.uart_listen_thread=UartListen()
+        self.connect(self.uart_listen_thread,SIGNAL('output(QString)'),self.uart_update_text) 
+        self.uart_auto_send_thread=UartAutoSend()
+        self.connect(self.uart_auto_send_thread,SIGNAL('output(QString)'),self.uart_update_text)
 
     def uart_show_time_check(self):
         global show_time_flag
@@ -221,26 +240,20 @@ class DtqDebuger(QDialog):
             atuo_send_time = string.atoi(str(self.send_time_lineedit.text()))
             send_message = str(self.send_lineedit.text())
             if auto_send_flag == 0:
-                auto_sender.start()
+                self.uart_auto_send_thread.start()
                 auto_send_flag = 1
             #print atuo_send_time
             #print send_message
         else:
             atuo_send_time = 0
 
-    def uart_update_text(self):
-        global browser
-        global messages
-
-        for m in messages:
-            browser.append(m)
-        messages = []
+    def uart_update_text(self,data):
+        self.browser.append(data)
 
     def uart_data_clear(self):
-        global browser
         global messages
 
-        browser.clear()
+        self.browser.clear()
         messages = []
 
     def uart_scan(self):
@@ -272,34 +285,31 @@ class DtqDebuger(QDialog):
                 pass
             
             if ser.isOpen() == True:
-                browser.append("<font color=red> Open <b>%s</b> OK!</font>" % ser.portstr )
-                reader.start()
+                self.browser.append("<font color=red> Open <b>%s</b> OK!</font>" % ser.portstr )
+                self.uart_listen_thread.start()
 
                 data = str(self.send_lineedit.text())
                 if show_time_flag == 1:
-                    browser.append(u"【%s】 <b>S[%d]:</b>%s" %(now, inputcount, data))
+                   self.browser.append(u"【%s】 <b>S[%d]:</b>%s" %(now, inputcount, data))
                 else:
-                    browser.append(u"<b>S[%d]:</b>%s" %(inputcount, data))
+                    self.browser.append(u"<b>S[%d]:</b>%s" %(inputcount, data))
                 inputcount = inputcount + 1
                 ser.write(data)
             else:
-                browser.append("<font color=red> Open <b>%s</b> Error!</font>" % ser.portstr )
+                self.browser.append("<font color=red> Open <b>%s</b> Error!</font>" % ser.portstr )
         else:
             if ser.isOpen() == True:
                 data = str(self.send_lineedit.text())
                 if show_time_flag == 1:
-                    browser.append(u"【%s】 <b>S[%d]:</b>%s" %(now, inputcount, data))
+                    self.browser.append(u"【%s】 <b>S[%d]:</b>%s" %(now, inputcount, data))
                 else:
-                    browser.append(u"<b>S[%d]:</b>%s" %(inputcount, data))
+                    self.browser.append(u"<b>S[%d]:</b>%s" %(inputcount, data))
                 inputcount = inputcount + 1
                 ser.write(data)
             else:
-                browser.append("<font color=red> Open <b>%s</b> Error!</font>" % ser.portstr )
+                self.browser.append("<font color=red> Open <b>%s</b> Error!</font>" % ser.portstr )
 
 if __name__=='__main__':
-    reader      = threading.Thread(target=uart_listen_process)
-    auto_sender = threading.Thread(target=uart_autosend_process)
-
     app = QApplication(sys.argv)
     datdebuger = DtqDebuger()
     datdebuger.show()
