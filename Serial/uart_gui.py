@@ -4,12 +4,13 @@ Created on Sat Apr 22 10:59:35 2017
 
 @author: john
 """
-
+import os
 import sys
 from time import sleep
 from math import *
 from PyQt4.QtCore import *
 from PyQt4.QtGui  import *
+from ctypes import *
 import serial
 import string
 import time
@@ -128,6 +129,48 @@ class DtqDebuger(QDialog):
         super(DtqDebuger, self).__init__(parent)
         inputcount = 0
         self.ports_dict = {}
+        self.cmd_dict   = {}
+        self.cmd_dict[u'清除白名单'] = "{'fun':'clear_wl'}"
+        self.cmd_dict[u'开启绑定']   = "{'fun':'bind_start'}"
+        self.cmd_dict[u'停止绑定']   = "{'fun':'bind_stop'}"
+        self.cmd_dict[u'查看设备信息'] = "{'fun':'get_device_info'}"
+        self.cmd_dict[u'发送题目'] ="\
+        {\
+          'fun': 'answer_start',\
+          'time': '2017-02-15:17:41:07:137',\
+          'questions': [\
+            {\
+              'type': 's',\
+              'id': '1',\
+              'range': 'A-D'\
+            },\
+            {\
+              'type': 'm',\
+              'id': '13',\
+              'range': 'A-F'\
+            },\
+            {\
+              'type': 'j',\
+              'id': '24',\
+              'range': ''\
+            },\
+            {\
+              'type': 'd',\
+              'id': '27',\
+              'range': '1-5'\
+            }\
+          ]\
+        }"
+        self.cmd_dict[u'查看配置'] ="{'fun': 'check_config'}"
+        self.cmd_dict[u'设置学号'] ="{'fun':'set_student_id','student_id':'1234'}"
+        self.cmd_dict[u'设置信道'] ="\
+        {\
+          'fun': 'set_channel',\
+          'tx_ch': '2',\
+          'rx_ch': '6'\
+        }"
+        self.cmd_dict[u'设置发送功率'] ="{'fun':'set_tx_power','tx_power':'5'}"
+        self.cmd_dict[u'进入bootloader'] ="{'fun':'bootloader'}"
 
         self.com_label=QLabel(u'串口：')  
         self.com_combo=QComboBox(self) 
@@ -148,10 +191,11 @@ class DtqDebuger(QDialog):
         self.protocol_combo.addItem(u'HEX')
         self.clear_revice_button=QPushButton(u"清空数据")
         
-        self.sendstyle_label=QLabel(u"发送格式：")
-        self.send_combo=QComboBox(self) 
-        self.send_combo.addItem(u'字符串')
-        self.send_combo.addItem(u'16进制')
+        self.send_cmd_combo=QComboBox(self) 
+        for key in self.cmd_dict:
+            self.send_cmd_combo.addItem(key)
+        self.send_cmd_combo.setCurrentIndex(self.send_cmd_combo.findText(u'查看设备信息'))
+
         self.auto_send_label=QLabel(u"自动发送") 
         self.auto_send_chackbox = QCheckBox() 
 
@@ -163,12 +207,8 @@ class DtqDebuger(QDialog):
         self.send_time_unit_label=QLabel(u"ms ") 
 
         self.update_fm_button=QPushButton(u"升级程序")
-        self.update_fm_label=QLabel(u"固件版本：") 
-        self.update_fm_combo=QComboBox(self) 
-        self.update_fm_combo.addItem(u'天喻')
-        self.update_fm_combo.addItem(u'自有')
 
-        self.send_lineedit = QLineEdit(u"{'fun': 'answer_start','time': '2017-02-15:17:41:07:137','questions': [{'type': 's','id': '1','range': 'A-D'},{'type': 'm','id': '13','range': 'A-F'},{'type': 'j','id': '24','range': ''},{'type': 'd','id': '27','range': '1-5'}]}")
+        self.send_lineedit = QLineEdit(self.cmd_dict[u'查看设备信息'])
         self.send_lineedit.selectAll()
         self.send_lineedit.setDragEnabled(True)
         self.send_lineedit.setMaxLength(5000)
@@ -195,33 +235,72 @@ class DtqDebuger(QDialog):
         t_hbox.addWidget(self.send_time_label)
         t_hbox.addWidget(self.send_time_lineedit)
         t_hbox.addWidget(self.send_time_unit_label)
-        t_hbox.addWidget(self.sendstyle_label)
-        t_hbox.addWidget(self.send_combo)
-        t_hbox.addWidget(self.update_fm_label)
-        t_hbox.addWidget(self.update_fm_combo)
         t_hbox.addWidget(self.update_fm_button)
+
+        d_hbox = QHBoxLayout()
+        d_hbox.addWidget(self.send_cmd_combo)
+        d_hbox.addWidget(self.send_lineedit)
 
         self.browser = QTextBrowser()
         vbox = QVBoxLayout()
         vbox.addLayout(c_hbox)
         vbox.addWidget(self.browser)
         vbox.addLayout(t_hbox)
-        vbox.addWidget(self.send_lineedit)
+        vbox.addLayout(d_hbox)
         
         self.setLayout(vbox)
 
         self.setGeometry(600, 600, 600, 500)
         self.send_lineedit.setFocus()
+
         self.send_lineedit.returnPressed.connect(self.uart_send_data)
         #self.clear_revice_button.clicked.connect(self.uart_data_clear)
         self.show_time_chackbox.stateChanged.connect(self.uart_show_time_check)
         self.auto_send_chackbox.stateChanged.connect(self.uart_auto_send_check)
+        self.update_fm_button.clicked.connect(self.uart_download_image)
+        self.send_cmd_combo.currentIndexChanged.connect(self.update_uart_cmd)
         self.setWindowTitle(u"答题器调试工具")
 
         self.uart_listen_thread=UartListen()
         self.connect(self.uart_listen_thread,SIGNAL('output(QString)'),self.uart_update_text) 
         self.uart_auto_send_thread=UartAutoSend()
         self.connect(self.uart_auto_send_thread,SIGNAL('output(QString)'),self.uart_update_text)
+
+    def update_uart_cmd(self):
+        data = unicode(self.send_cmd_combo.currentText())
+        self.send_lineedit.setText(self.cmd_dict[data])
+
+    def uart_download_image(self):
+        global ser
+        global inputcount
+
+        dll_path = os.path.abspath("./") +'\\data\\' + 'ExtraPuTTY.dll'
+        image_path = os.path.abspath("./") +'\\data\\' + 'DTQ_RP551CPU_ZKXL0200_V0102.bin'
+
+        print dll_path
+        print image_path
+
+        if ser != 0:
+            if ser.isOpen() == True:
+                cmd = self.cmd_dict[u'进入bootloader']
+                self.browser.append(u"<b>S[%d]:</b>%s" %(inputcount, cmd))
+                inputcount = inputcount + 1
+                ser.write(cmd)
+
+                #dll = windll.LoadLibrary(dll_path)
+            #dll.sio_ioctl(ser.port, 15, 0x00 | 0x03 | 0x00) # 57600, 无校验，8位数据位，1位停止位
+               
+            #dll.sio_close(ser.port)
+        #else:
+        #   dll.sio_open(ser.port)
+        #sio_FtYmodemTx = dll.sio_FtYmodemTx
+        #sio_FtYmodemTx.argtypes = [ctypes.c_int, ctypes.c_long, ctypes.c_long, ctypes.c_char_p, ctypes.c_long]
+        #sio_FtYmodemTx.restypes = 
+        #python调用MoxaPCOMMLite通过串口Ymodem协议发送
+        #CALLBACK = WINFUNCTYPE(c_int, c_long, c_int, POINTER(c_char), c_long)
+        #ccb = CALLBACK(self.cb)
+        #dll.sio_FtYmodemTx(ser.port, image_path, self.cb, 0) 
+
 
     def uart_show_time_check(self):
         global show_time_flag
@@ -263,7 +342,7 @@ class DtqDebuger(QDialog):
                 s = serial.Serial(i)
                 self.com_combo.addItem(s.portstr)
                 self.ports_dict[s.portstr] = i
-                s.close()   # explicit close 'cause of delayed GC in java
+                s.close()
             except serial.SerialException:
                 pass
 
@@ -280,8 +359,7 @@ class DtqDebuger(QDialog):
         if inputcount == 0:
             try:
                 ser = serial.Serial( self.ports_dict[serial_port], string.atoi(baud_rate, 10))
-            except serial.SerialException:
-                ser.close() 
+            except serial.SerialException: 
                 pass
             
             if ser.isOpen() == True:
