@@ -4,52 +4,54 @@ Created on Sat Apr 22 10:59:35 2017
 
 @author: john
 """
-import os
-import sys
-from time import sleep
-from math import *
-from PyQt4.QtCore import *
-from PyQt4.QtGui  import *
-from ctypes import *
 import serial
 import string
 import time
+import os
+import sys
+from time import sleep
+from PyQt4.QtCore import *
+from PyQt4.QtGui  import *
+from ctypes import *
+from math import *
 
 ser            = 0
-show_time_flag = 0
-inputcount     = 0
+input_count    = 0
 atuo_send_time = 0
 auto_send_flag = 0
-send_message   = ""
+show_time_flag = 0
 
 class UartAutoSend(QThread): 
-	def __init__(self,parent=None): 
-		super(UartAutoSend,self).__init__(parent) 
-		self.working=True 
-		self.num=0 
+    def __init__(self,parent=None): 
+        super(UartAutoSend,self).__init__(parent) 
+        self.working=True 
+        self.num=0 
 
-	def __del__(self): 
-		self.working=False 
-		self.wait() 
+    def __del__(self): 
+        self.working=False 
+        self.wait() 
 
-	def run(self): 
-		global ser
-		global inputcount
-		global send_message
+    def run(self): 
+        global ser
+        global input_count
+        global send_message
 
-		while self.working==True: 
-			if inputcount > 0:
-				if atuo_send_time != 0:
-					inputcount = inputcount + 1
-					ser.write(send_message)
-					if show_time_flag == 1:
-						ISOTIMEFORMAT = '%Y-%m-%d %H:%M:%S'
-						now = time.strftime( ISOTIMEFORMAT, time.localtime( time.time() ) )
-						send_str = u"【%s】<b>S[%d]:</b>%s" % (now, inputcount-1, send_message)
-					else:
-						send_str = u"<b>S[%d]:</b>%s" % (inputcount-1, send_message)
-					self.emit(SIGNAL('output(QString)'),send_str) 
-					sleep(atuo_send_time/1000)
+        while self.working==True: 
+            if input_count > 0:
+                if atuo_send_time != 0:
+                    input_count = input_count + 1
+                    ser.write(send_message)
+                    if show_time_flag == 1:
+                        ISOTIMEFORMAT = '%Y-%m-%d %H:%M:%S'
+                        now = time.strftime( ISOTIMEFORMAT,
+                            time.localtime( time.time() ) )
+                        send_str = u"【%s】<b>S[%d]:</b>%s" % (now,
+                            input_count-1, send_message)
+                    else:
+                        send_str = u"<b>S[%d]:</b>%s" % (input_count-1,
+                            send_message)
+                    self.emit(SIGNAL('output(QString)'),send_str) 
+                    sleep(atuo_send_time*1.0/1000)
 
 class UartListen(QThread): 
     def __init__(self,parent=None): 
@@ -62,29 +64,27 @@ class UartListen(QThread):
         self.wait() 
 
     def run(self): 
-    	global ser
-    	json_revice = JsonDecode()
-    	str_len = 0
-    	ISOTIMEFORMAT = '%Y-%m-%d %H:%M:%S'
+        global ser
+        json_revice = JsonDecode()
+        ISOTIMEFORMAT = '%Y-%m-%d %H:%M:%S'
 
         while self.working==True: 
-        	if ser.isOpen() == True:
-	            read_char = ser.read(1)
-	            #print read_char
-	            str1 = json_revice.r_machine(read_char)
-	            if len(str1) == 0:
-	                str_len = str_len + 1
-	            else:
-	                now = time.strftime( ISOTIMEFORMAT, time.localtime( time.time() ) )
-	                if show_time_flag == 1:
-	                    recv_str = u"【%s】 <b>R[%d]:</b>%s" % (now, inputcount-1, str1)
-	                else:
-	                    recv_str = u"<b>R[%d]:</b>%s" % (inputcount-1, str1)
-	                #messages.append(data)
-	                #print file_str
-	                str_len = 0
-	                self.emit(SIGNAL('output(QString)'),recv_str) 
-	                #self.sleep(3) 
+            if ser.isOpen() == True:
+                read_char = ser.read(1)
+                #print read_char
+                str1 = json_revice.r_machine(read_char)
+                if len(str1) != 0:
+                    now = time.strftime( ISOTIMEFORMAT,
+                        time.localtime(time.time()))
+                    if show_time_flag == 1:
+                        recv_str = u"【%s】 <b>R[%d]:</b>%s" % (now, 
+                            input_count-1, str1)
+                    else:
+                        recv_str = u"<b>R[%d]:</b>%s" % (input_count-1, str1)
+                    #messages.append(data)
+                    #print file_str
+                    self.emit(SIGNAL('output(QString)'),recv_str) 
+                    #self.sleep(3) 
 
 class JsonDecode():
     def __init__(self):
@@ -127,50 +127,39 @@ class DtqDebuger(QDialog):
         global ser
 
         super(DtqDebuger, self).__init__(parent)
-        inputcount = 0
+        input_count = 0
         self.ports_dict = {}
         self.cmd_dict   = {}
-        self.cmd_dict[u'清除白名单'] = "{'fun':'clear_wl'}"
-        self.cmd_dict[u'开启绑定']   = "{'fun':'bind_start'}"
-        self.cmd_dict[u'停止绑定']   = "{'fun':'bind_stop'}"
-        self.cmd_dict[u'查看设备信息'] = "{'fun':'get_device_info'}"
+        self.cmd_dict[u'清白名单'] = "{'fun':'clear_wl'}"
+        self.cmd_dict[u'开启绑定'] = "{'fun':'bind_start'}"
+        self.cmd_dict[u'停止绑定'] = "{'fun':'bind_stop'}"
+        self.cmd_dict[u'设备信息'] = "{'fun':'get_device_info'}"
         self.cmd_dict[u'发送题目'] ="\
         {\
           'fun': 'answer_start',\
           'time': '2017-02-15:17:41:07:137',\
           'questions': [\
-            {\
-              'type': 's',\
-              'id': '1',\
-              'range': 'A-D'\
-            },\
-            {\
-              'type': 'm',\
-              'id': '13',\
-              'range': 'A-F'\
-            },\
-            {\
-              'type': 'j',\
-              'id': '24',\
-              'range': ''\
-            },\
-            {\
-              'type': 'd',\
-              'id': '27',\
-              'range': '1-5'\
+            {'type': 's','id': '1','range': 'A-D'},\
+            {'type': 'm','id': '13','range': 'A-F'},\
+            {'type': 'j','id': '24','range': ''},\
+            {'type': 'd','id': '27','range': '1-5'\
             }\
           ]\
         }"
-        self.cmd_dict[u'查看配置'] ="{'fun': 'check_config'}"
-        self.cmd_dict[u'设置学号'] ="{'fun':'set_student_id','student_id':'1234'}"
+        self.cmd_dict[u'查看配置'] ="{'fun':'check_config'}"
+        self.cmd_dict[u'设置学号'] ="\
+        {\
+          'fun':'set_student_id',\
+          'student_id':'1234'\
+        }"
         self.cmd_dict[u'设置信道'] ="\
         {\
           'fun': 'set_channel',\
           'tx_ch': '2',\
           'rx_ch': '6'\
         }"
-        self.cmd_dict[u'设置发送功率'] ="{'fun':'set_tx_power','tx_power':'5'}"
-        self.cmd_dict[u'进入bootloader'] ="{'fun':'bootloader'}"
+        self.cmd_dict[u'设置功率'] ="{'fun':'set_tx_power','tx_power':'5'}"
+        self.cmd_dict[u'下载程序'] ="{'fun':'bootloader'}"
 
         self.com_label=QLabel(u'串口：')  
         self.com_combo=QComboBox(self) 
@@ -194,7 +183,8 @@ class DtqDebuger(QDialog):
         self.send_cmd_combo=QComboBox(self) 
         for key in self.cmd_dict:
             self.send_cmd_combo.addItem(key)
-        self.send_cmd_combo.setCurrentIndex(self.send_cmd_combo.findText(u'查看设备信息'))
+        self.send_cmd_combo.setCurrentIndex(self.send_cmd_combo.
+            findText(u'设备信息'))
 
         self.auto_send_label=QLabel(u"自动发送") 
         self.auto_send_chackbox = QCheckBox() 
@@ -208,7 +198,7 @@ class DtqDebuger(QDialog):
 
         self.update_fm_button=QPushButton(u"升级程序")
 
-        self.send_lineedit = QLineEdit(self.cmd_dict[u'查看设备信息'])
+        self.send_lineedit = QLineEdit(self.cmd_dict[u'设备信息'])
         self.send_lineedit.selectAll()
         self.send_lineedit.setDragEnabled(True)
         self.send_lineedit.setMaxLength(5000)
@@ -262,9 +252,11 @@ class DtqDebuger(QDialog):
         self.setWindowTitle(u"答题器调试工具")
 
         self.uart_listen_thread=UartListen()
-        self.connect(self.uart_listen_thread,SIGNAL('output(QString)'),self.uart_update_text) 
+        self.connect(self.uart_listen_thread,SIGNAL('output(QString)'),
+            self.uart_update_text) 
         self.uart_auto_send_thread=UartAutoSend()
-        self.connect(self.uart_auto_send_thread,SIGNAL('output(QString)'),self.uart_update_text)
+        self.connect(self.uart_auto_send_thread,SIGNAL('output(QString)'),
+            self.uart_update_text)
 
     def update_uart_cmd(self):
         data = unicode(self.send_cmd_combo.currentText())
@@ -272,35 +264,21 @@ class DtqDebuger(QDialog):
 
     def uart_download_image(self):
         global ser
-        global inputcount
+        global input_count
 
-        dll_path = os.path.abspath("./") +'\\data\\' + 'ExtraPuTTY.dll'
-        image_path = os.path.abspath("./") +'\\data\\' + 'DTQ_RP551CPU_ZKXL0200_V0102.bin'
+        data_path  = os.path.abspath("./") +'\\data\\'
+        dll_path   = data_path + 'ExtraPuTTY.dll'
+        image_path = data_path + 'DTQ_RP551CPU_ZKXL0200_V0102.bin'
 
         print dll_path
         print image_path
 
         if ser != 0:
             if ser.isOpen() == True:
-                cmd = self.cmd_dict[u'进入bootloader']
-                self.browser.append(u"<b>S[%d]:</b>%s" %(inputcount, cmd))
-                inputcount = inputcount + 1
+                cmd = self.cmd_dict[u'下载程序']
+                self.browser.append(u"<b>S[%d]:</b>%s" %(input_count, cmd))
+                input_count = input_count + 1
                 ser.write(cmd)
-
-                #dll = windll.LoadLibrary(dll_path)
-            #dll.sio_ioctl(ser.port, 15, 0x00 | 0x03 | 0x00) # 57600, 无校验，8位数据位，1位停止位
-               
-            #dll.sio_close(ser.port)
-        #else:
-        #   dll.sio_open(ser.port)
-        #sio_FtYmodemTx = dll.sio_FtYmodemTx
-        #sio_FtYmodemTx.argtypes = [ctypes.c_int, ctypes.c_long, ctypes.c_long, ctypes.c_char_p, ctypes.c_long]
-        #sio_FtYmodemTx.restypes = 
-        #python调用MoxaPCOMMLite通过串口Ymodem协议发送
-        #CALLBACK = WINFUNCTYPE(c_int, c_long, c_int, POINTER(c_char), c_long)
-        #ccb = CALLBACK(self.cb)
-        #dll.sio_FtYmodemTx(ser.port, image_path, self.cb, 0) 
-
 
     def uart_show_time_check(self):
         global show_time_flag
@@ -348,7 +326,7 @@ class DtqDebuger(QDialog):
 
     def uart_send_data(self):
         global ser
-        global inputcount
+        global input_count
         global show_time_flag
 
         serial_port = str(self.com_combo.currentText())
@@ -356,36 +334,42 @@ class DtqDebuger(QDialog):
         ISOTIMEFORMAT = '%Y-%m-%d %H:%M:%S'
         now = time.strftime( ISOTIMEFORMAT, time.localtime( time.time() ) )
 
-        if inputcount == 0:
+        if input_count == 0:
             try:
-                ser = serial.Serial( self.ports_dict[serial_port], string.atoi(baud_rate, 10))
+                ser = serial.Serial( self.ports_dict[serial_port], 
+                    string.atoi(baud_rate, 10))
             except serial.SerialException: 
                 pass
             
             if ser.isOpen() == True:
-                self.browser.append("<font color=red> Open <b>%s</b> OK!</font>" % ser.portstr )
+                self.browser.append("<font color=red> Open <b>%s</b> \
+                    OK!</font>" % ser.portstr )
                 self.uart_listen_thread.start()
 
                 data = str(self.send_lineedit.text())
                 if show_time_flag == 1:
-                   self.browser.append(u"【%s】 <b>S[%d]:</b>%s" %(now, inputcount, data))
+                   self.browser.append(u"【%s】 <b>S[%d]:</b>%s"
+                    % (now, input_count,data))
                 else:
-                    self.browser.append(u"<b>S[%d]:</b>%s" %(inputcount, data))
-                inputcount = inputcount + 1
+                    self.browser.append(u"<b>S[%d]:</b>%s" %(input_count, data))
+                input_count = input_count + 1
                 ser.write(data)
             else:
-                self.browser.append("<font color=red> Open <b>%s</b> Error!</font>" % ser.portstr )
+                self.browser.append("<font color=red> Open <b>%s</b> \
+                    Error!</font>" % ser.portstr )
         else:
             if ser.isOpen() == True:
                 data = str(self.send_lineedit.text())
                 if show_time_flag == 1:
-                    self.browser.append(u"【%s】 <b>S[%d]:</b>%s" %(now, inputcount, data))
+                    self.browser.append(u"【%s】 <b>S[%d]:</b>%s" 
+                        % (now, input_count, data))
                 else:
-                    self.browser.append(u"<b>S[%d]:</b>%s" %(inputcount, data))
-                inputcount = inputcount + 1
+                    self.browser.append(u"<b>S[%d]:</b>%s" %(input_count, data))
+                input_count = input_count + 1
                 ser.write(data)
             else:
-                self.browser.append("<font color=red> Open <b>%s</b> Error!</font>" % ser.portstr )
+                self.browser.append("<font color=red> Open <b>%s</b> \
+                    Error!</font>" % ser.portstr )
 
 if __name__=='__main__':
     app = QApplication(sys.argv)
