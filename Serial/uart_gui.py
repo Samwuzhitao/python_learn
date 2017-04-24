@@ -21,6 +21,7 @@ inputcount     = 0
 messages       = []
 send_message   = ""
 atuo_send_time = 0
+auto_send_flag = 0
 
 def uart_autosend_process():
     global ser
@@ -33,6 +34,7 @@ def uart_autosend_process():
         sleep(atuo_send_time/1000)
         if ser.isOpen() == True:
             if atuo_send_time != 0:
+                inputcount = inputcount + 1
                 ser.write(send_message)
                 data = u"<b>S[%d]:</b>%s" % (inputcount-1, send_message)
                 messages.append(data)
@@ -212,12 +214,15 @@ class DtqDebuger(QDialog):
     def uart_auto_send_check(self):
         global send_message   
         global atuo_send_time 
+        global auto_send_flag
 
         if self.auto_send_chackbox.isChecked():
             #show_time_flag = 1
             atuo_send_time = string.atoi(str(self.send_time_lineedit.text()))
             send_message = str(self.send_lineedit.text())
-            auto_sender.start()
+            if auto_send_flag == 0:
+                auto_sender.start()
+                auto_send_flag = 1
             #print atuo_send_time
             #print send_message
         else:
