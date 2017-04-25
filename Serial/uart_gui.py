@@ -606,6 +606,7 @@ class DtqDebuger(QDialog):
         self.send_cmd_combo.currentIndexChanged.connect(self.update_uart_cmd)
         self.protocol_combo.currentIndexChanged.connect(self.update_uart_protocol)
         self.display_combo.currentIndexChanged.connect(self.update_uart_hex_decode_show_style)
+        self.com_combo.currentIndexChanged.connect(self.change_uart)
         self.setWindowTitle(u"答题器调试工具")
 
         self.uart_listen_thread=UartListen()
@@ -613,6 +614,10 @@ class DtqDebuger(QDialog):
             self.uart_update_text) 
         self.timer = QTimer()
         self.timer.timeout.connect(self.uart_send_data)
+
+    def change_uart(self):
+        global input_count
+        input_count = 0
 
     def update_uart_hex_decode_show_style(self):
         global hex_decode_show_style
