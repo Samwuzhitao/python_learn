@@ -218,11 +218,10 @@ class HexDecode():
                 self.str = self.str + ' ' + char
                 self.status = 6
                 self.xor = 0
-                return ""
             else:
                 self.status = 0
                 self.xor = 0
-                return ""
+            return ""
 
         if self.status == 6:
             if char == "CA":
@@ -239,6 +238,7 @@ class HexDecode():
                     #cmd_type = str[4:6]
                     #self.ReviceFunSets[cmd_type](len_int,data,self.show)
                     return self.str
+            return ""
 
     def message_show(self,str):
         str = " " + str
