@@ -534,6 +534,12 @@ class DtqDebuger(QDialog):
         self.protocol_combo.addItem(u'JSON')
         self.protocol_combo.addItem(u'HEX')
         self.clear_revice_button=QPushButton(u"清空数据")
+        self.clear_revice_button.setCheckable(False)
+        self.clear_revice_button.setAutoExclusive(False)
+        self.clear_revice_button.setFixedSize(75, 25)
+        self.clear_revice_button.setStyleSheet("QPushButton{border:1px solid lightgray;background:rgb(230,230,230)}"
+            "QPushButton:hover{border-color:green;background:transparent}")
+                    
         
         self.send_cmd_combo=QComboBox(self) 
         for key in self.json_cmd_dict:
@@ -549,6 +555,11 @@ class DtqDebuger(QDialog):
         self.send_time_unit_label=QLabel(u"ms ") 
 
         self.update_fm_button=QPushButton(u"升级程序")
+        self.update_fm_button.setCheckable(False)
+        self.update_fm_button.setAutoExclusive(False)
+        self.update_fm_button.setFixedSize(75, 25)
+        self.update_fm_button.setStyleSheet("QPushButton{border:1px solid lightgray;background:rgb(230,230,230)}"
+            "QPushButton:hover{border-color:green;background:transparent}")
 
         self.send_lineedit = QLineEdit(self.json_cmd_dict[u'设备信息'])
         self.send_lineedit.selectAll()
@@ -586,6 +597,7 @@ class DtqDebuger(QDialog):
         vbox.addWidget(self.browser)
         vbox.addLayout(d_hbox)
         self.setLayout(vbox)
+        
 
         self.setGeometry(600, 600, 600, 500)
         self.send_lineedit.setFocus()
