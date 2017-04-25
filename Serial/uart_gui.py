@@ -209,7 +209,7 @@ class HexDecode():
 
         if self.status == 5:
             uart_cal_oxr = self.xor
-            uart_cal_oxr = "%02x" % uart_cal_oxr
+            uart_cal_oxr = "%02X" % uart_cal_oxr
             #print "uart_revice_oxr =",char
             #print "xor_cal(x) =",uart_cal_oxr
             uart_oxr_cmp = cmp(uart_cal_oxr,char)
