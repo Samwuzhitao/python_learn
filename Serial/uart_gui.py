@@ -464,30 +464,14 @@ class DtqDebuger(QDialog):
         self.json_cmd_dict[u'开启绑定'] = "{'fun':'bind_start'}"
         self.json_cmd_dict[u'停止绑定'] = "{'fun':'bind_stop'}"
         self.json_cmd_dict[u'设备信息'] = "{'fun':'get_device_info'}"
-        self.json_cmd_dict[u'发送题目'] ="\
-        {\
-          'fun': 'answer_start',\
-          'time': '2017-02-15:17:41:07:137',\
-          'questions': [\
-            {'type': 's','id': '1','range': 'A-D'},\
+        self.json_cmd_dict[u'发送题目'] = "{'fun': 'answer_start','time': '2017-02-15:17:41:07:137',\
+            'questions': [{'type': 's','id': '1','range': 'A-D'},\
             {'type': 'm','id': '13','range': 'A-F'},\
             {'type': 'j','id': '24','range': ''},\
-            {'type': 'd','id': '27','range': '1-5'\
-            }\
-          ]\
-        }"
+            {'type': 'd','id': '27','range': '1-5'}]}"
         self.json_cmd_dict[u'查看配置'] ="{'fun':'check_config'}"
-        self.json_cmd_dict[u'设置学号'] ="\
-        {\
-          'fun':'set_student_id',\
-          'student_id':'1234'\
-        }"
-        self.json_cmd_dict[u'设置信道'] ="\
-        {\
-          'fun': 'set_channel',\
-          'tx_ch': '2',\
-          'rx_ch': '6'\
-        }"
+        self.json_cmd_dict[u'设置学号'] ="{'fun':'set_student_id','student_id':'1234'}"
+        self.json_cmd_dict[u'设置信道'] ="{'fun': 'set_channel','tx_ch': '2','rx_ch': '6'}"
         self.json_cmd_dict[u'设置功率'] ="{'fun':'set_tx_power','tx_power':'5'}"
         self.json_cmd_dict[u'下载程序'] ="{'fun':'bootloader'}"
 
@@ -498,24 +482,16 @@ class DtqDebuger(QDialog):
         self.hex_cmd_dict[u'设备信息'] = "5C 2C 00 00 00 00 00 2C CA"
         self.hex_cmd_dict[u'单选题目'] = "5C 10 01 0C 14 55 0D 5A 00 00 00 00 00 11 03 01 01 7F 6D CA C1 CA"
         self.hex_cmd_dict[u'发送题目'] = "5C 28 00 00 00 00 14 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 1C CA"
-        self.hex_cmd_dict[u'查看配置'] = "{'fun':'check_config'}"
-        self.hex_cmd_dict[u'设置学号'] = "\
-        {\
-          'fun':'set_student_id',\
-          'student_id':'1234'\
-        }"
-        self.hex_cmd_dict[u'设置信道'] = "\
-        {\
-          'fun': 'set_channel',\
-          'tx_ch': '2',\
-          'rx_ch': '6'\
-        }"
-        self.hex_cmd_dict[u'设置功率'] = "{'fun':'set_tx_power','tx_power':'5'}"
-        self.hex_cmd_dict[u'下载程序'] = "{'fun':'bootloader'}"
+        self.hex_cmd_dict[u'查看配置'] = u"暂无功能"
+        self.hex_cmd_dict[u'设置学号'] = u"暂无功能"
+        self.hex_cmd_dict[u'设置信道'] = u"暂无功能"
+        self.hex_cmd_dict[u'设置功率'] = u"暂无功能"
+        self.hex_cmd_dict[u'下载程序'] = u"暂无功能"
 
         self.open_com_button=QPushButton(u"打开串口")
         self.open_com_button.setFixedSize(75, 25)
-        self.open_com_button.setStyleSheet("QPushButton{border:1px solid lightgray;background:rgb(230,230,230)}"
+        self.open_com_button.setStyleSheet(
+            "QPushButton{border:1px solid lightgray;background:rgb(230,230,230)}"
             "QPushButton:hover{border-color:green;background:transparent}")  
         self.com_combo=QComboBox(self) 
         self.com_combo.setFixedSize(75, 20)
@@ -533,7 +509,8 @@ class DtqDebuger(QDialog):
         self.display_combo.addItem(u'16进制')
         self.display_combo.addItem(u'字符串')
         self.display_combo.setFixedSize(60, 20)
-        self.display_combo.setStyleSheet("QPushButton{border:1px solid lightgray;background:rgb(230,230,230)}"
+        self.display_combo.setStyleSheet(
+            "QPushButton{border:1px solid lightgray;background:rgb(230,230,230)}"
             "QPushButton:hover{border-color:green;background:transparent}")
         self.display_combo.setCurrentIndex(self.display_combo.
             findText(u'字符串'))
@@ -542,16 +519,17 @@ class DtqDebuger(QDialog):
         self.protocol_combo.addItem(u'JSON')
         self.protocol_combo.addItem(u'HEX')
         self.protocol_combo.setFixedSize(60, 20)
-        self.protocol_combo.setStyleSheet("QPushButton{border:1px solid lightgray;background:rgb(230,230,230)}"
+        self.protocol_combo.setStyleSheet(
+            "QPushButton{border:1px solid lightgray;background:rgb(230,230,230)}"
             "QPushButton:hover{border-color:green;background:transparent}")
         self.clear_revice_button=QPushButton(u"清空数据")
         self.clear_revice_button.setCheckable(False)
         self.clear_revice_button.setAutoExclusive(False)
         self.clear_revice_button.setFixedSize(75, 25)
-        self.clear_revice_button.setStyleSheet("QPushButton{border:1px solid lightgray;background:rgb(230,230,230)}"
+        self.clear_revice_button.setStyleSheet(
+            "QPushButton{border:1px solid lightgray;background:rgb(230,230,230)}"
             "QPushButton:hover{border-color:green;background:transparent}")
-                    
-        
+
         self.send_cmd_combo=QComboBox(self) 
         self.send_cmd_combo.setFixedSize(75, 25)
         for key in self.json_cmd_dict:
@@ -575,10 +553,11 @@ class DtqDebuger(QDialog):
         self.update_fm_button.setCheckable(False)
         self.update_fm_button.setAutoExclusive(False)
         self.update_fm_button.setFixedSize(75, 25)
-        self.update_fm_button.setStyleSheet("QPushButton{border:1px solid lightgray;background:rgb(230,230,230)}"
+        self.update_fm_button.setStyleSheet(
+            "QPushButton{border:1px solid lightgray;background:rgb(230,230,230)}"
             "QPushButton:hover{border-color:green;background:transparent}")
 
-        self.send_lineedit = QLineEdit(self.json_cmd_dict[u'设备信息'])
+        self.send_lineedit = QLineEdit(u"修改或者输入指令，按Enter键发送！")
         self.send_lineedit.selectAll()
         self.send_lineedit.setDragEnabled(True)
         self.send_lineedit.setMaxLength(5000)
