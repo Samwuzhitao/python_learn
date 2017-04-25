@@ -15,54 +15,11 @@ from PyQt4.QtGui  import *
 from ctypes import *
 from math import *
 
-#import uart_decode
-
 ser              = 0
 input_count      = 0
-atuo_send_time   = 0
-auto_send_flag   = 0
 show_time_flag   = 0
 decode_type_flag = 0
 hex_decode_show_style = 1
-send_message     = ""
-
-class UartAutoSend(QThread): 
-    def __init__(self,parent=None): 
-        super(UartAutoSend,self).__init__(parent) 
-        self.working=True 
-        self.num=0 
-
-    def __del__(self): 
-        self.working=False 
-        self.wait() 
-
-    def run(self): 
-        global ser
-        global input_count
-        global decode_type_flag 
-        global send_message
-
-        while self.working==True: 
-            if input_count > 0:
-                if atuo_send_time != 0:
-                    input_count = input_count + 1
-
-                    if  decode_type_flag == 1:
-                        hex_message = send_message.replace(' ','')
-                        #print send_message
-                        hex_message = hex_message.decode("hex")
-                    ser.write(hex_message)
-
-                    if show_time_flag == 1:
-                        ISOTIMEFORMAT = '%Y-%m-%d %H:%M:%S'
-                        now = time.strftime( ISOTIMEFORMAT,
-                            time.localtime( time.time() ) )
-                        send_str = u"[%s] <b>S[%d]:</b> %s" % (now,
-                            input_count-1, send_message)
-                    else:
-                        send_str = u"<b>S[%d]:</b> %s" % (input_count-1,send_message)
-                    self.emit(SIGNAL('output(QString)'),send_str) 
-                    sleep(atuo_send_time*1.0/1000)
 
 class UartListen(QThread): 
     def __init__(self,parent=None): 
@@ -498,7 +455,6 @@ class HexDecode():
 class DtqDebuger(QDialog):
     def __init__(self, parent=None):
         global ser
-        global send_message 
 
         super(DtqDebuger, self).__init__(parent)
         input_count = 0
@@ -655,9 +611,8 @@ class DtqDebuger(QDialog):
         self.uart_listen_thread=UartListen()
         self.connect(self.uart_listen_thread,SIGNAL('output(QString)'),
             self.uart_update_text) 
-        self.uart_auto_send_thread=UartAutoSend()
-        self.connect(self.uart_auto_send_thread,SIGNAL('output(QString)'),
-            self.uart_update_text)
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.uart_send_data)
 
     def update_uart_hex_decode_show_style(self):
         global hex_decode_show_style
@@ -669,7 +624,6 @@ class DtqDebuger(QDialog):
 
     def update_uart_protocol(self):
         global decode_type_flag
-        global send_message 
 
         data = unicode(self.protocol_combo.currentText())
         if data == u'JSON':
@@ -681,7 +635,6 @@ class DtqDebuger(QDialog):
             decode_type_flag = 1
             data = unicode(self.send_cmd_combo.currentText())
             self.send_lineedit.setText(self.hex_cmd_dict[data])
-            send_message = str(self.send_lineedit.text())
         #print decode_type_flag
 
     def update_uart_cmd(self):
@@ -718,30 +671,19 @@ class DtqDebuger(QDialog):
         else:
             show_time_flag = 0
 
-    def uart_auto_send_check(self): 
-        global atuo_send_time 
-        global auto_send_flag
-        global send_message
+    def uart_auto_send_check(self):  
+        atuo_send_time = string.atoi(str(self.send_time_lineedit.text()))
 
         if self.auto_send_chackbox.isChecked():
-            #show_time_flag = 1
-            send_message = str(self.send_lineedit.text())
-            atuo_send_time = string.atoi(str(self.send_time_lineedit.text()))
-            if auto_send_flag == 0:
-                self.uart_auto_send_thread.start()
-                auto_send_flag = 1
-            #print atuo_send_time
+            self.timer.start(atuo_send_time)
         else:
-            atuo_send_time = 0
+            self.timer.stop()
 
     def uart_update_text(self,data):
         self.browser.append(data)
 
     def uart_data_clear(self):
-        global messages
-
         self.browser.clear()
-        messages = []
 
     def uart_scan(self):
         for i in range(256):
