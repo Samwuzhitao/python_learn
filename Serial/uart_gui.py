@@ -541,11 +541,8 @@ class DtqDebuger(QDialog):
         self.send_cmd_combo.setCurrentIndex(self.send_cmd_combo.
             findText(u'设备信息'))
 
-        self.auto_send_label=QLabel(u"自动发送") 
-        self.auto_send_chackbox = QCheckBox() 
-
-        self.show_time_label=QLabel(u"显示时间") 
-        self.show_time_chackbox = QCheckBox() 
+        self.auto_send_chackbox = QCheckBox(u"自动发送") 
+        self.show_time_chackbox = QCheckBox(u"显示时间") 
 
         self.send_time_label=QLabel(u"发送周期：") 
         self.send_time_lineedit = QLineEdit(u'4000')
@@ -571,12 +568,8 @@ class DtqDebuger(QDialog):
         c_hbox.addWidget(self.clear_revice_button)
 
         t_hbox = QHBoxLayout()
-        t_hbox.addWidget(self.show_time_label)
         t_hbox.addWidget(self.show_time_chackbox)
-
-        t_hbox.addWidget(self.auto_send_label)
         t_hbox.addWidget(self.auto_send_chackbox)
-
         t_hbox.addWidget(self.send_time_label)
         t_hbox.addWidget(self.send_time_lineedit)
         t_hbox.addWidget(self.send_time_unit_label)
@@ -589,17 +582,16 @@ class DtqDebuger(QDialog):
         self.browser = QTextBrowser()
         vbox = QVBoxLayout()
         vbox.addLayout(c_hbox)
-        vbox.addWidget(self.browser)
         vbox.addLayout(t_hbox)
+        vbox.addWidget(self.browser)
         vbox.addLayout(d_hbox)
-        
         self.setLayout(vbox)
 
         self.setGeometry(600, 600, 600, 500)
         self.send_lineedit.setFocus()
 
         self.send_lineedit.returnPressed.connect(self.uart_send_data)
-        #self.clear_revice_button.clicked.connect(self.uart_data_clear)
+        self.clear_revice_button.clicked.connect(self.uart_data_clear)
         self.show_time_chackbox.stateChanged.connect(self.uart_show_time_check)
         self.auto_send_chackbox.stateChanged.connect(self.uart_auto_send_check)
         self.update_fm_button.clicked.connect(self.uart_download_image)
