@@ -513,26 +513,37 @@ class DtqDebuger(QDialog):
         self.hex_cmd_dict[u'设置功率'] = "{'fun':'set_tx_power','tx_power':'5'}"
         self.hex_cmd_dict[u'下载程序'] = "{'fun':'bootloader'}"
 
-
-        self.com_label=QLabel(u'串口：')  
+        self.open_com_button=QPushButton(u"打开串口")
+        self.open_com_button.setFixedSize(75, 25)
+        self.open_com_button.setStyleSheet("QPushButton{border:1px solid lightgray;background:rgb(230,230,230)}"
+            "QPushButton:hover{border-color:green;background:transparent}")  
         self.com_combo=QComboBox(self) 
+        self.com_combo.setFixedSize(75, 20)
         self.uart_scan()
 
-        self.com_lineedit = QLineEdit(u'COM1')
         self.baudrate_label=QLabel(u"波特率：") 
+        self.baudrate_label.setFixedSize(60, 20)
         self.baudrate_lineedit = QLineEdit(u'1152000')
+        self.baudrate_lineedit.setFixedSize(50, 20)
         self.baudrate_unit_label=QLabel(u"bps ") 
+        self.baudrate_unit_label.setFixedSize(20, 20)
 
         self.displaystyle_label=QLabel(u"显示格式：")
         self.display_combo=QComboBox(self) 
         self.display_combo.addItem(u'16进制')
         self.display_combo.addItem(u'字符串')
+        self.display_combo.setFixedSize(60, 20)
+        self.display_combo.setStyleSheet("QPushButton{border:1px solid lightgray;background:rgb(230,230,230)}"
+            "QPushButton:hover{border-color:green;background:transparent}")
         self.display_combo.setCurrentIndex(self.display_combo.
             findText(u'字符串'))
         self.protocol_label=QLabel(u"协议版本：")
         self.protocol_combo=QComboBox(self) 
         self.protocol_combo.addItem(u'JSON')
         self.protocol_combo.addItem(u'HEX')
+        self.protocol_combo.setFixedSize(60, 20)
+        self.protocol_combo.setStyleSheet("QPushButton{border:1px solid lightgray;background:rgb(230,230,230)}"
+            "QPushButton:hover{border-color:green;background:transparent}")
         self.clear_revice_button=QPushButton(u"清空数据")
         self.clear_revice_button.setCheckable(False)
         self.clear_revice_button.setAutoExclusive(False)
@@ -542,17 +553,23 @@ class DtqDebuger(QDialog):
                     
         
         self.send_cmd_combo=QComboBox(self) 
+        self.send_cmd_combo.setFixedSize(75, 25)
         for key in self.json_cmd_dict:
             self.send_cmd_combo.addItem(key)
         self.send_cmd_combo.setCurrentIndex(self.send_cmd_combo.
             findText(u'设备信息'))
 
         self.auto_send_chackbox = QCheckBox(u"自动发送") 
-        self.show_time_chackbox = QCheckBox(u"显示时间") 
+        self.com_combo.setFixedSize(75, 25)
+        self.show_time_chackbox = QCheckBox(u"显示时间")
+        self.com_combo.setFixedSize(75, 25) 
 
         self.send_time_label=QLabel(u"发送周期：") 
+        self.send_time_label.setFixedSize(60, 20)
         self.send_time_lineedit = QLineEdit(u'4000')
+        self.send_time_lineedit.setFixedSize(50, 20)
         self.send_time_unit_label=QLabel(u"ms ") 
+        self.send_time_unit_label.setFixedSize(20, 20)
 
         self.update_fm_button=QPushButton(u"升级程序")
         self.update_fm_button.setCheckable(False)
@@ -567,13 +584,11 @@ class DtqDebuger(QDialog):
         self.send_lineedit.setMaxLength(5000)
 
         c_hbox = QHBoxLayout()
-        c_hbox.addWidget(self.com_label)
         c_hbox.addWidget(self.com_combo)
+        c_hbox.addWidget(self.open_com_button)
         c_hbox.addWidget(self.baudrate_label)
         c_hbox.addWidget(self.baudrate_lineedit)
         c_hbox.addWidget(self.baudrate_unit_label)
-        c_hbox.addWidget(self.protocol_label)
-        c_hbox.addWidget(self.protocol_combo)
         c_hbox.addWidget(self.displaystyle_label)
         c_hbox.addWidget(self.display_combo)
         c_hbox.addWidget(self.clear_revice_button)
@@ -584,6 +599,8 @@ class DtqDebuger(QDialog):
         t_hbox.addWidget(self.send_time_label)
         t_hbox.addWidget(self.send_time_lineedit)
         t_hbox.addWidget(self.send_time_unit_label)
+        t_hbox.addWidget(self.protocol_label)
+        t_hbox.addWidget(self.protocol_combo)
         t_hbox.addWidget(self.update_fm_button)
 
         d_hbox = QHBoxLayout()
@@ -597,9 +614,8 @@ class DtqDebuger(QDialog):
         vbox.addWidget(self.browser)
         vbox.addLayout(d_hbox)
         self.setLayout(vbox)
-        
 
-        self.setGeometry(600, 600, 600, 500)
+        self.setGeometry(600, 500, 550, 500)
         self.send_lineedit.setFocus()
 
         self.send_lineedit.returnPressed.connect(self.uart_send_data)
