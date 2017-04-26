@@ -175,7 +175,7 @@ class UartListen(QThread):
                     if down_load_image_flag == 1:
                         if read_char == '.':
                             start_flag_count = start_flag_count + 1
-                            if start_flag_count == 6:
+                            if start_flag_count == 3:
                                 self.emit(SIGNAL('pressed_1_cmd(QString)'),u"启动连接..." )
                                 start_flag_count = 0
                         if read_char == 'C':
@@ -614,10 +614,10 @@ class DtqDebuger(QDialog):
         self.hex_cmd_dict[u'下载程序'] = u"暂无功能"
 
         self.open_com_button=QPushButton(u"打开串口")
-        #self.open_com_button.setFixedSize(75, 25)
-        #self.open_com_button.setStyleSheet(
-        #    "QPushButton{border:1px solid lightgray;background:rgb(230,230,230)}"
-        #    "QPushButton:hover{border-color:green;background:transparent}")  
+        self.open_com_button.setFixedSize(75, 25)
+        self.open_com_button.setStyleSheet(
+            "QPushButton{border:1px solid lightgray;background:rgb(230,230,230)}"
+            "QPushButton:hover{border-color:green;background:transparent}")  
         self.com_combo=QComboBox(self) 
         self.com_combo.setFixedSize(75, 20)
         self.uart_scan()
