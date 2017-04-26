@@ -536,7 +536,7 @@ class DtqDebuger(QDialog):
             self.send_cmd_combo.addItem(key)
         self.send_cmd_combo.setCurrentIndex(self.send_cmd_combo.
             findText(u'设备信息'))
-
+        self.browser = QTextBrowser()
         self.auto_send_chackbox = QCheckBox(u"自动发送") 
         self.com_combo.setFixedSize(75, 25)
         self.show_time_chackbox = QCheckBox(u"显示时间")
@@ -586,7 +586,6 @@ class DtqDebuger(QDialog):
         d_hbox.addWidget(self.send_cmd_combo)
         d_hbox.addWidget(self.send_lineedit)
 
-        self.browser = QTextBrowser()
         vbox = QVBoxLayout()
         vbox.addLayout(c_hbox)
         vbox.addLayout(t_hbox)
