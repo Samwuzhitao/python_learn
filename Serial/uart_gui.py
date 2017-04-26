@@ -542,7 +542,7 @@ class DtqDebuger(QDialog):
         self.update_fm_button.setStyleSheet(
             "QPushButton{border:1px solid lightgray;background:rgb(230,230,230)}"
             "QPushButton:hover{border-color:green;background:transparent}")
-        
+
         self.send_lineedit = QLineEdit(u"修改或者输入指令，按Enter键发送！")
         self.send_lineedit.selectAll()
         self.send_lineedit.setDragEnabled(True)
@@ -608,7 +608,10 @@ class DtqDebuger(QDialog):
 
     def change_uart(self):
         global input_count
-        input_count = 0
+        global ser
+        if ser != 0:
+            input_count = 0
+            ser.close()
 
     def update_uart_hex_decode_show_style(self):
         global hex_decode_show_style
