@@ -149,29 +149,15 @@ class UartListen(QThread):
         json_revice = JsonDecode()
         ISOTIMEFORMAT = '%Y-%m-%d %H:%M:%S'
 
+        start_flag_count = 0
+
         while self.working==True: 
             if ser.isOpen() == True:
                 read_char = ser.read(1)
+                #print "status = %d revice char = %s " % (down_load_image_flag, read_char)
 
-                if down_load_image_flag == 3:
-                    if read_char == 'C':
-                    #if down_load_image_flag == 2:
-                        data = u"建立连接,发送镜像文件信息"
-                        data_path  = os.path.abspath("./") +'\\data\\'
-                        image_path = data_path + 'DTQ_RP551CPU_ZKXL0200_V0102.bin'
-                        size       = os.path.getsize(image_path)
-                        self.emit(SIGNAL('output(QString)'),data) 
-                        iap = UartYmodemSendFile()
-                        ser.write(iap.encode_header_package(image_path,size))
-                        down_load_image_flag = 4
-
-                if down_load_image_flag == 4:
-                    #data = u"传输镜像文件..."
-                    print "connect..."
-                    #self.emit(SIGNAL('output(QString)'),data ) 
-
-                else:
-                    #print read_char
+                if ((down_load_image_flag == 1) | (down_load_image_flag == 0)):
+                    #print read_char,
                     if decode_type_flag == 0:
                         str1 = json_revice.r_machine(read_char)
                     if decode_type_flag == 1:
@@ -184,15 +170,37 @@ class UartListen(QThread):
                         else:
                             recv_str = u"<b>R[%d]: </b>" % (input_count-1) + u"%s" % str1
                         #messages.append(data)
-                        #print file_str
-                        self.emit(SIGNAL('output(QString)'),recv_str) 
-                        if down_load_image_flag == 1:
+                        #print recv_str
+
+                    if down_load_image_flag == 1:
+                        if read_char == '.':
+                            start_flag_count = start_flag_count + 1
+                            if start_flag_count == 6:
+                                self.emit(SIGNAL('pressed_1_cmd(QString)'),u"启动连接..." )
+                                start_flag_count = 0
+                        if read_char == 'C':
                             down_load_image_flag = 2
-                            sleep(0.5) 
-                            ser.write('1')
-                            data = u"尝试建立连接..."
-                            self.emit(SIGNAL('output(QString)'),data )
-                            down_load_image_flag = 3 
+                            self.emit(SIGNAL('pressed_1_cmd(QString)'),u"建立连接..." )
+                    else:
+                        self.emit(SIGNAL('output(QString)'),recv_str)
+
+                if down_load_image_flag == 2:
+
+                    data = u"建立连接,发送镜像文件信息..."
+                    data_path  = os.path.abspath("./") +'\\data\\'
+                    image_path = data_path + 'DTQ_RP551CPU_ZKXL0200_V0102.bin'
+                    size       = os.path.getsize(image_path)
+                    self.emit(SIGNAL('output(QString)'),data) 
+                    iap = UartYmodemSendFile()
+                    ser.write(iap.encode_header_package(image_path,size))
+                    down_load_image_flag = 3
+
+                if down_load_image_flag == 3:
+                    #data = u"传输镜像文件..."
+                    if read_char == 'C':
+                        data = u"接收校验通过..."
+                        self.emit(SIGNAL('output(QString)'),data)
+                    #self.emit(SIGNAL('output(QString)'),data ) 
 
 class JsonDecode():
     def __init__(self):
@@ -606,10 +614,10 @@ class DtqDebuger(QDialog):
         self.hex_cmd_dict[u'下载程序'] = u"暂无功能"
 
         self.open_com_button=QPushButton(u"打开串口")
-        self.open_com_button.setFixedSize(75, 25)
-        self.open_com_button.setStyleSheet(
-            "QPushButton{border:1px solid lightgray;background:rgb(230,230,230)}"
-            "QPushButton:hover{border-color:green;background:transparent}")  
+        #self.open_com_button.setFixedSize(75, 25)
+        #self.open_com_button.setStyleSheet(
+        #    "QPushButton{border:1px solid lightgray;background:rgb(230,230,230)}"
+        #    "QPushButton:hover{border-color:green;background:transparent}")  
         self.com_combo=QComboBox(self) 
         self.com_combo.setFixedSize(75, 20)
         self.uart_scan()
@@ -728,8 +736,32 @@ class DtqDebuger(QDialog):
         self.uart_listen_thread=UartListen()
         self.connect(self.uart_listen_thread,SIGNAL('output(QString)'),
             self.uart_update_text) 
+        self.connect(self.uart_listen_thread,SIGNAL('pressed_1_cmd(QString)'),
+            self.uart_send_press_1_text) 
         self.timer = QTimer()
         self.timer.timeout.connect(self.uart_send_data)
+
+    def uart_send_press_1_text(self,data):
+        global ser
+        global down_load_image_flag
+
+        #print "uart_send_press_1_text"
+
+        if down_load_image_flag == 1:
+            self.browser.append(data)
+            self.send_lineedit.setText("1")
+            self.timer.start(500)
+        else:
+            if data == u'JSON':
+                decode_type_flag = 0
+                data = unicode(self.send_cmd_combo.currentText())
+                self.send_lineedit.setText(self.json_cmd_dict[data])
+      
+            if data == u'HEX':
+                decode_type_flag = 1
+                data = unicode(self.send_cmd_combo.currentText())
+                self.send_lineedit.setText(self.hex_cmd_dict[data])
+            self.timer.stop()
 
     def change_uart(self):
         global input_count
