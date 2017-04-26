@@ -20,6 +20,7 @@ input_count      = 0
 show_time_flag   = 0
 decode_type_flag = 0
 hex_decode_show_style = 1
+down_load_image_flag  = 0
 
 class UartListen(QThread): 
     def __init__(self,parent=None): 
@@ -33,6 +34,8 @@ class UartListen(QThread):
 
     def run(self): 
         global ser
+        global down_load_image_flag
+
         hex_revice  = HexDecode()
         json_revice = JsonDecode()
         ISOTIMEFORMAT = '%Y-%m-%d %H:%M:%S'
@@ -40,22 +43,31 @@ class UartListen(QThread):
         while self.working==True: 
             if ser.isOpen() == True:
                 read_char = ser.read(1)
-                #print read_char
-                if decode_type_flag == 0:
-                    str1 = json_revice.r_machine(read_char)
-                if decode_type_flag == 1:
-                    str1 = hex_revice.r_machine(read_char)
-                if len(str1) != 0:
-                    now = time.strftime( ISOTIMEFORMAT,
-                        time.localtime(time.time()))
-                    if show_time_flag == 1:
-                        recv_str = u"[%s] <b>R[%d]:</b>" % (now, input_count-1) + u"%s" %  str1
-                    else:
-                        recv_str = u"<b>R[%d]:</b>" % (input_count-1) + u"%s" % str1
-                    #messages.append(data)
-                    #print file_str
-                    self.emit(SIGNAL('output(QString)'),recv_str) 
-                    #self.sleep(3) 
+                if down_load_image_flag == 2:
+                    if read_char == 'C':
+                        data = u"开始下载 image"
+                        self.emit(SIGNAL('output(QString)'),data) 
+                    if read_char == '.':
+                        ser.write('1')
+                else:
+                    #print read_char
+                    if decode_type_flag == 0:
+                        str1 = json_revice.r_machine(read_char)
+                    if decode_type_flag == 1:
+                        str1 = hex_revice.r_machine(read_char)
+                    if len(str1) != 0:
+                        now = time.strftime( ISOTIMEFORMAT,
+                            time.localtime(time.time()))
+                        if show_time_flag == 1:
+                            recv_str = u"[%s] <b>R [%d]:</b>" % (now, input_count-1) + u"%s" %  str1
+                        else:
+                            recv_str = u"<b>R [%d]:</b>" % (input_count-1) + u"%s" % str1
+                        #messages.append(data)
+                        #print file_str
+                        self.emit(SIGNAL('output(QString)'),recv_str) 
+                        if down_load_image_flag == 1:
+                            down_load_image_flag = 2
+                        #self.sleep(3) 
 
 class JsonDecode():
     def __init__(self):
@@ -239,24 +251,17 @@ class HexDecode():
         return show_str
 
     def message_show_cmd_10(self,len,str):
-        #print "message_show_cmd_10"
         show_str = message_status_check1(str[0:2])
         show_str += " WL_FILTER_STATUS = "+str[3:5]
         uidlen   = string.atoi(str[6:8],16)
         show_str += " WL_LEN = %d" % uidlen
         return show_str
-        #show_f(show_str,'a')
-        #print str
 
     def message_show_cmd_11(self,len,str):
-        #print "message_show_cmd_10"
         show_str = ' Message : ' + str
         return show_str
-        #uartc.message_show(str)
 
     def message_show_cmd_12(self,len,str):
-        #print "message_show_cmd_12"
-        #show_f(message_status_check(str[0:2]),'a')
         show_str = message_status_check1(str[0:2])
         show_str += " WL_FILTER_STATUS = "+str[3:5]
         uidlen   = string.atoi(str[6:8],16)
@@ -264,7 +269,6 @@ class HexDecode():
         return show_str
 
     def message_show_cmd_20(self,len,str):
-        #print "message_show_cmd_20"
         uidlen   = string.atoi(str[0:2],16)
         show_str = " WL_OK_COUNT = %d" % uidlen
         uidlen   = string.atoi(str[27:29],16)
@@ -273,12 +277,10 @@ class HexDecode():
         return show_str
 
     def message_show_cmd_22(self,len,str):
-        #print "message_show_cmd_22:white list init "
         show_str = self.message_status_check(str[0:2])
         return show_str
 
     def message_show_cmd_26(self,len,str):
-        #print "message_show_cmd_26"
         uid = str[3:14]
         uid = uid.replace(' ','')
         show_str  = ' uPOS:[%3d] ' % string.atoi(str[0:2], 16)
@@ -286,8 +288,6 @@ class HexDecode():
         return show_str
 
     def message_show_cmd_2b(self,len,str):
-        #print "message_show_cmd_2b"
-        #print str
         global uidshowindex
         global uidshowflg
         global store_uid_switch
@@ -316,14 +316,10 @@ class HexDecode():
                 j = j + 1
             if j == UID_SHOW_COL_NUM:
                 j = 0
-                #show_f(show_str,'a')
-                #show_str = " "
                 store_uid_switch = 0
                 uid_table_first_write = 0
                 return show_str
             if i >= len :
-                #show_f(show_str,'a')
-                #show_str = " "
                 store_uid_switch = 0
                 uid_table_first_write = 0
                 return show_str
@@ -373,8 +369,6 @@ class HexDecode():
         return message_status_check(str[0:2])
 
     def message_show_cmd_30(self,len,str):
-        #print "message_show_cmd_30"
-        #message_process_show(string.atoi(str[0:3], 16),show_f)
         show_str = "lost:"
         show_f(show_str,'a')
         i = 1
@@ -397,8 +391,6 @@ class HexDecode():
         return show_str
 
     def message_show_cmd_31(self,len,str):
-        #print "message_show_cmd_31"
-        #message_process_show(string.atoi(str[0:3], 16),show_f)
         show_str = "Ok:"
         show_f(show_str,'a')
         i = 1
@@ -509,9 +501,6 @@ class DtqDebuger(QDialog):
         self.display_combo.addItem(u'16进制')
         self.display_combo.addItem(u'字符串')
         self.display_combo.setFixedSize(60, 20)
-        self.display_combo.setStyleSheet(
-            "QPushButton{border:1px solid lightgray;background:rgb(230,230,230)}"
-            "QPushButton:hover{border-color:green;background:transparent}")
         self.display_combo.setCurrentIndex(self.display_combo.
             findText(u'字符串'))
         self.protocol_label=QLabel(u"协议版本：")
@@ -519,9 +508,6 @@ class DtqDebuger(QDialog):
         self.protocol_combo.addItem(u'JSON')
         self.protocol_combo.addItem(u'HEX')
         self.protocol_combo.setFixedSize(60, 20)
-        self.protocol_combo.setStyleSheet(
-            "QPushButton{border:1px solid lightgray;background:rgb(230,230,230)}"
-            "QPushButton:hover{border-color:green;background:transparent}")
         self.clear_revice_button=QPushButton(u"清空数据")
         self.clear_revice_button.setCheckable(False)
         self.clear_revice_button.setAutoExclusive(False)
@@ -556,7 +542,7 @@ class DtqDebuger(QDialog):
         self.update_fm_button.setStyleSheet(
             "QPushButton{border:1px solid lightgray;background:rgb(230,230,230)}"
             "QPushButton:hover{border-color:green;background:transparent}")
-
+        
         self.send_lineedit = QLineEdit(u"修改或者输入指令，按Enter键发送！")
         self.send_lineedit.selectAll()
         self.send_lineedit.setDragEnabled(True)
@@ -600,11 +586,18 @@ class DtqDebuger(QDialog):
         self.clear_revice_button.clicked.connect(self.uart_data_clear)
         self.show_time_chackbox.stateChanged.connect(self.uart_show_time_check)
         self.auto_send_chackbox.stateChanged.connect(self.uart_auto_send_check)
-        self.update_fm_button.clicked.connect(self.uart_download_image)
+
         self.send_cmd_combo.currentIndexChanged.connect(self.update_uart_cmd)
         self.protocol_combo.currentIndexChanged.connect(self.update_uart_protocol)
         self.display_combo.currentIndexChanged.connect(self.update_uart_hex_decode_show_style)
+
         self.com_combo.currentIndexChanged.connect(self.change_uart)
+        self.com_combo.currentIndexChanged.connect(self.update_uart_protocol)
+
+        self.update_fm_button.clicked.connect(self.uart_download_image)
+        self.update_fm_button.clicked.connect(self.update_uart_protocol)
+        self.update_fm_button.clicked.connect(self.uart_send_data)
+
         self.setWindowTitle(u"答题器调试工具")
 
         self.uart_listen_thread=UartListen()
@@ -642,30 +635,23 @@ class DtqDebuger(QDialog):
 
     def update_uart_cmd(self):
         global decode_type_flag
-        
-        data = unicode(self.send_cmd_combo.currentText())
-        if decode_type_flag == 0:
-            self.send_lineedit.setText(self.json_cmd_dict[data])
-        if decode_type_flag == 1:
-            self.send_lineedit.setText(self.hex_cmd_dict[data])
+        self.send_cmd_combo.currentText()
+
+    def cb(xmitlen, buflen, pbuf, flen):   
+        print xmitlen, flen,   
+        return xmitlen   
 
     def uart_download_image(self):
-        global ser
-        global input_count
+        global down_load_image_flag
 
         data_path  = os.path.abspath("./") +'\\data\\'
-        dll_path   = data_path + 'ExtraPuTTY.dll'
         image_path = data_path + 'DTQ_RP551CPU_ZKXL0200_V0102.bin'
-
-        print dll_path
-        print image_path
-
-        if ser != 0:
-            if ser.isOpen() == True:
-                cmd = self.json_cmd_dict[u'下载程序']
-                self.browser.append(u"<b>S[%d]:</b>%s" %(input_count, cmd))
-                input_count = input_count + 1
-                ser.write(cmd)
+        self.send_cmd_combo.setCurrentIndex(self.send_cmd_combo.
+            findText(u'下载程序'))
+        down_load_image_flag = 1
+        #sleep(0.3)
+        #self.uart_listen_thread.working=False
+        #self.uart_download_thread.start()
 
     def uart_show_time_check(self):
         global show_time_flag
