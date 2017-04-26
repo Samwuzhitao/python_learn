@@ -22,6 +22,75 @@ decode_type_flag = 0
 hex_decode_show_style = 1
 down_load_image_flag  = 0
 
+class UartListen(QThread): 
+    def __init__(self,parent=None): 
+        super(UartListen,self).__init__(parent) 
+        self.working=True 
+        self.num=0 
+
+    def __del__(self): 
+        self.working=False 
+        self.wait() 
+
+    def run(self): 
+        global ser
+        global down_load_image_flag
+
+        hex_revice  = HexDecode()
+        json_revice = JsonDecode()
+        ISOTIMEFORMAT = '%Y-%m-%d %H:%M:%S'
+
+        start_flag_count = 0
+
+        while self.working==True: 
+            if ser.isOpen() == True:
+                read_char = ser.read(1)
+                #print "status = %d revice char = %s " % (down_load_image_flag, read_char)
+                if ((down_load_image_flag == 1) | (down_load_image_flag == 0)):
+                    #print read_char,
+                    if decode_type_flag == 0:
+                        str1 = json_revice.r_machine(read_char)
+                    if decode_type_flag == 1:
+                        str1 = hex_revice.r_machine(read_char)
+                    if len(str1) != 0:
+                        now = time.strftime( ISOTIMEFORMAT,
+                            time.localtime(time.time()))
+                        if show_time_flag == 1:
+                            recv_str = u"[%s] <b>R[%d]: </b>" % (now, input_count-1) + u"%s" %  str1
+                        else:
+                            recv_str = u"<b>R[%d]: </b>" % (input_count-1) + u"%s" % str1
+                        #messages.append(data)
+                        #print recv_str
+                        self.emit(SIGNAL('output(QString)'),recv_str)
+
+                    if down_load_image_flag == 1:
+                        if read_char == '.':
+                            start_flag_count = start_flag_count + 1
+                            if start_flag_count == 3:
+                                self.emit(SIGNAL('pressed_1_cmd(QString)'),u"启动连接..." )
+                                start_flag_count = 0
+                        if read_char == 'C':
+                            down_load_image_flag = 2
+                            self.emit(SIGNAL('pressed_1_cmd(QString)'),u"建立连接..." )
+
+                if down_load_image_flag == 2:
+
+                    data = u"建立连接,发送镜像文件信息..."
+                    data_path  = os.path.abspath("./") +'\\data\\'
+                    image_path = data_path + 'DTQ_RP551CPU_ZKXL0200_V0102.bin'
+                    size       = os.path.getsize(image_path)
+                    self.emit(SIGNAL('output(QString)'),data) 
+                    iap = UartYmodemSendFile()
+                    ser.write(iap.encode_header_package(image_path,size))
+                    down_load_image_flag = 3
+
+                if down_load_image_flag == 3:
+                    #data = u"传输镜像文件..."
+                    if read_char == 'C':
+                        data = u"接收校验通过..."
+                        self.emit(SIGNAL('output(QString)'),data)
+                    #self.emit(SIGNAL('output(QString)'),data ) 
+
 class UartYmodemSendFile():
     def __init__(self): 
         self.package    = []
@@ -129,78 +198,6 @@ class UartYmodemSendFile():
 
 
         f.close()
-
-
-class UartListen(QThread): 
-    def __init__(self,parent=None): 
-        super(UartListen,self).__init__(parent) 
-        self.working=True 
-        self.num=0 
-
-    def __del__(self): 
-        self.working=False 
-        self.wait() 
-
-    def run(self): 
-        global ser
-        global down_load_image_flag
-
-        hex_revice  = HexDecode()
-        json_revice = JsonDecode()
-        ISOTIMEFORMAT = '%Y-%m-%d %H:%M:%S'
-
-        start_flag_count = 0
-
-        while self.working==True: 
-            if ser.isOpen() == True:
-                read_char = ser.read(1)
-                #print "status = %d revice char = %s " % (down_load_image_flag, read_char)
-
-                if ((down_load_image_flag == 1) | (down_load_image_flag == 0)):
-                    #print read_char,
-                    if decode_type_flag == 0:
-                        str1 = json_revice.r_machine(read_char)
-                    if decode_type_flag == 1:
-                        str1 = hex_revice.r_machine(read_char)
-                    if len(str1) != 0:
-                        now = time.strftime( ISOTIMEFORMAT,
-                            time.localtime(time.time()))
-                        if show_time_flag == 1:
-                            recv_str = u"[%s] <b>R[%d]: </b>" % (now, input_count-1) + u"%s" %  str1
-                        else:
-                            recv_str = u"<b>R[%d]: </b>" % (input_count-1) + u"%s" % str1
-                        #messages.append(data)
-                        #print recv_str
-
-                    if down_load_image_flag == 1:
-                        if read_char == '.':
-                            start_flag_count = start_flag_count + 1
-                            if start_flag_count == 3:
-                                self.emit(SIGNAL('pressed_1_cmd(QString)'),u"启动连接..." )
-                                start_flag_count = 0
-                        if read_char == 'C':
-                            down_load_image_flag = 2
-                            self.emit(SIGNAL('pressed_1_cmd(QString)'),u"建立连接..." )
-                    else:
-                        self.emit(SIGNAL('output(QString)'),recv_str)
-
-                if down_load_image_flag == 2:
-
-                    data = u"建立连接,发送镜像文件信息..."
-                    data_path  = os.path.abspath("./") +'\\data\\'
-                    image_path = data_path + 'DTQ_RP551CPU_ZKXL0200_V0102.bin'
-                    size       = os.path.getsize(image_path)
-                    self.emit(SIGNAL('output(QString)'),data) 
-                    iap = UartYmodemSendFile()
-                    ser.write(iap.encode_header_package(image_path,size))
-                    down_load_image_flag = 3
-
-                if down_load_image_flag == 3:
-                    #data = u"传输镜像文件..."
-                    if read_char == 'C':
-                        data = u"接收校验通过..."
-                        self.emit(SIGNAL('output(QString)'),data)
-                    #self.emit(SIGNAL('output(QString)'),data ) 
 
 class JsonDecode():
     def __init__(self):
@@ -750,7 +747,7 @@ class DtqDebuger(QDialog):
         if down_load_image_flag == 1:
             self.browser.append(data)
             self.send_lineedit.setText("1")
-            self.timer.start(500)
+            self.timer.start(100)
         else:
             if data == u'JSON':
                 decode_type_flag = 0
