@@ -594,7 +594,7 @@ class DtqDebuger(QDialog):
         vbox.addLayout(d_hbox)
         self.setLayout(vbox)
 
-        self.setGeometry(600, 500, 550, 500)
+        self.setGeometry(600, 500, 555, 500)
         self.send_lineedit.setFocus()
 
         self.send_lineedit.returnPressed.connect(self.uart_send_data)
