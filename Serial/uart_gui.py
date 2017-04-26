@@ -59,9 +59,9 @@ class UartListen(QThread):
                         now = time.strftime( ISOTIMEFORMAT,
                             time.localtime(time.time()))
                         if show_time_flag == 1:
-                            recv_str = u"[%s] <b>R [%d]:</b>" % (now, input_count-1) + u"%s" %  str1
+                            recv_str = u"[%s] <b>R[%d]: </b>" % (now, input_count-1) + u"%s" %  str1
                         else:
-                            recv_str = u"<b>R [%d]:</b>" % (input_count-1) + u"%s" % str1
+                            recv_str = u"<b>R[%d]: </b>" % (input_count-1) + u"%s" % str1
                         #messages.append(data)
                         #print file_str
                         self.emit(SIGNAL('output(QString)'),recv_str) 
@@ -609,6 +609,7 @@ class DtqDebuger(QDialog):
     def change_uart(self):
         global input_count
         global ser
+
         if ser != 0:
             input_count = 0
             ser.close()
@@ -640,10 +641,6 @@ class DtqDebuger(QDialog):
         global decode_type_flag
         self.send_cmd_combo.currentText()
 
-    def cb(xmitlen, buflen, pbuf, flen):   
-        print xmitlen, flen,   
-        return xmitlen   
-
     def uart_download_image(self):
         global down_load_image_flag
 
@@ -652,9 +649,6 @@ class DtqDebuger(QDialog):
         self.send_cmd_combo.setCurrentIndex(self.send_cmd_combo.
             findText(u'下载程序'))
         down_load_image_flag = 1
-        #sleep(0.3)
-        #self.uart_listen_thread.working=False
-        #self.uart_download_thread.start()
 
     def uart_show_time_check(self):
         global show_time_flag
